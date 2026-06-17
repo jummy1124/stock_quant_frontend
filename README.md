@@ -19,46 +19,48 @@ npm run dev            # http://localhost:5173
 python run_intraday.py --serve --api-origins http://localhost:5173
 ```
 
-## Docker
+## Docker（同源 / 反向代理架構）
 
-多階段建置（Node 打包 → nginx 提供靜態檔）。API 位址支援**執行期注入**，同一個 image
-可指向任何後端，無需重新 build。
-
-### docker compose（建議）
+多階段建置（Node 打包 → nginx 提供靜態檔）。前端用**同源相對路徑** `/api`，由
+nginx 反向代理到後端，因此**不寫死後端 IP、也不需要設 CORS**。後端外部 IP 變動時，
+前端不必重 build、不必改設定。
 
 ```bash
-# 預設連 http://localhost:8000，對外開 5173
 docker compose up -d --build
-
-# 指定後端位址
-VITE_API_BASE_URL=http://192.168.1.10:8000 docker compose up -d --build
 ```
 
-開啟 http://localhost:5173 。
-
-### 純 docker
-
-```bash
-docker build -t stock-quant-frontend .
-docker run -d -p 5173:80 \
-  -e VITE_API_BASE_URL=http://192.168.1.10:8000 \
-  --name stock-quant-frontend stock-quant-frontend
-```
+開啟 http://localhost:5173（或部署主機的 `:5173`）。
 
 ### 運作方式
 
-- 容器啟動時 `docker-entrypoint.sh` 依環境變數 `VITE_API_BASE_URL` 產生
-  `/config.js`，前端在 runtime 讀取（優先於建置期 `import.meta.env`）。
-- 改後端位址只需改環境變數重啟容器，不必重 build。
-- nginx 設定 SPA fallback；`config.js` / `index.html` 不快取，`/assets/*` 長快取。
+- nginx 把 `/api/`、`/health` 反向代理到後端（預設 `host.docker.internal:8000`，
+  即「跑在 host 上、publish 8000 埠」的後端），其餘走 SPA fallback。
+- 前端 API base 預設為空字串 = 同源，所以瀏覽器打的是
+  `http://<前端主機>/api/screen`，由 nginx 轉給後端 → 無跨域、無 CORS。
+- 容器透過 `extra_hosts: host.docker.internal:host-gateway` 連回 host。
+- `config.js` / `index.html` 不快取，`/assets/*` 長快取。
 
-> CORS：後端需把前端來源加入 `--api-origins`（例如 `http://localhost:5173`）。
+### 後端需求
+
+- 後端在 host 上 publish `8000` 埠即可（你現有的 docker compose 不用改）。
+- 不再需要 `--api-origins`（同源、無 CORS）。
+- 對外防火牆只需開前端埠（`5173` 或 `80`）；`8000` 可不對外（由 nginx 內部代理）。
+
+### 直連模式（選用）
+
+若要讓瀏覽器**直接**連另一台後端（不經代理），設 `VITE_API_BASE_URL` 為完整 URL
+（此時後端需自行開 CORS）：
+
+```bash
+VITE_API_BASE_URL=http://other-host:8000 docker compose up -d --build
+```
 
 ## 環境變數
 
 | 變數 | 預設 | 說明 |
 | --- | --- | --- |
-| `VITE_API_BASE_URL` | `http://localhost:8000` | 後端 base URL，不寫死在程式碼 |
+| `VITE_API_BASE_URL` | 空（同源） | 留空走 nginx `/api` 代理；填完整 URL 則瀏覽器直連該後端（需 CORS） |
+| `BACKEND_URL` | `http://localhost:8000` | 僅開發用：vite dev server 的 `/api` 代理目標 |
 
 ## 指令
 

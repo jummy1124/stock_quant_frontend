@@ -3,13 +3,16 @@ services:
     build:
       context: .
       args:
-        # 建置期預設值 (執行期可由下方 environment 覆寫)
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000}
+        # 建置期預設值；空字串 = 同源 (走 nginx /api 反向代理)
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
     image: stock-quant-frontend:latest
     container_name: stock-quant-frontend
     ports:
       - "5173:80"
     environment:
-      # 執行期注入：容器啟動時產生 /config.js，前端讀此值連後端
-      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000}
+      # 執行期注入；預設留空 = 同源，nginx 代理 /api 到後端，免設 CORS
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+    # 讓容器內 nginx 能用 host.docker.internal 連回 host 上的後端 (8000)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     restart: unless-stopped

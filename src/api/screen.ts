@@ -4,7 +4,8 @@ import type { PoolResponse, ScreenResponse } from "../types/screen";
 // API base URL 解析優先序：
 //   1. 執行期注入 window.__APP_CONFIG__.API_BASE_URL (Docker entrypoint 產生 /config.js)
 //   2. 建置期 import.meta.env.VITE_API_BASE_URL
-//   3. 預設 http://localhost:8000
+//   3. 預設 ""（同源）→ 走 nginx 反向代理 /api（正式環境）或 vite proxy（開發）
+// 注意：空字串 "" 是合法值，代表「同源相對路徑」，不可 fallback 成 localhost。
 declare global {
   interface Window {
     __APP_CONFIG__?: { API_BASE_URL?: string };
@@ -14,7 +15,10 @@ declare global {
 function resolveBase(): string {
   const runtime =
     typeof window !== "undefined" ? window.__APP_CONFIG__?.API_BASE_URL : undefined;
-  return runtime || import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+  if (typeof runtime === "string") return runtime; // 尊重 ""（同源）
+  const env = import.meta.env.VITE_API_BASE_URL;
+  if (typeof env === "string") return env; // 尊重 ""（同源）
+  return ""; // 同源
 }
 
 const BASE = resolveBase();
