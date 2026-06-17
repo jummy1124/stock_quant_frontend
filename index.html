@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>台股盤中起漲篩選</title>
+    <!-- 執行期設定：Docker 啟動時由 entrypoint 產生 /config.js 覆寫 API 位址 (開發環境此檔不存在，會 404，可忽略) -->
+    <script src="/config.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

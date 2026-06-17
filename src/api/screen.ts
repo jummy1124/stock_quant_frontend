@@ -1,0 +1,70 @@
+// src/api/screen.ts
+import type { PoolResponse, ScreenResponse } from "../types/screen";
+
+// API base URL 解析優先序：
+//   1. 執行期注入 window.__APP_CONFIG__.API_BASE_URL (Docker entrypoint 產生 /config.js)
+//   2. 建置期 import.meta.env.VITE_API_BASE_URL
+//   3. 預設 http://localhost:8000
+declare global {
+  interface Window {
+    __APP_CONFIG__?: { API_BASE_URL?: string };
+  }
+}
+
+function resolveBase(): string {
+  const runtime =
+    typeof window !== "undefined" ? window.__APP_CONFIG__?.API_BASE_URL : undefined;
+  return runtime || import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+}
+
+const BASE = resolveBase();
+
+/** 對應後端 503「資料尚未備妥」，呼叫端可忽略並續輪詢 (非錯誤) */
+export class NotReadyError extends Error {
+  constructor(message = "資料準備中") {
+    super(message);
+    this.name = "NotReadyError";
+  }
+}
+
+export interface ScreenParams {
+  /** 只取前 N 名，0 = 全部 */
+  top?: number;
+  /** 強度分下限過濾 */
+  minScore?: number;
+}
+
+/**
+ * 取得最新起漲清單 (主端點)。
+ * - 503 → 丟出 NotReadyError (呼叫端視為「稍後重試」)
+ * - 其他非 2xx → 一般 Error
+ */
+export async function fetchScreen(
+  params: ScreenParams = {},
+  signal?: AbortSignal,
+): Promise<ScreenResponse> {
+  const q = new URLSearchParams();
+  if (params.top != null) q.set("top", String(params.top));
+  if (params.minScore != null) q.set("min_score", String(params.minScore));
+
+  const res = await fetch(`${BASE}/api/screen?${q.toString()}`, { signal });
+  if (res.status === 503) throw new NotReadyError();
+  if (!res.ok) throw new Error(`API ${res.status}`);
+  return (await res.json()) as ScreenResponse;
+}
+
+/** 取得第一層漲幅池 (除錯/備用) */
+export async function fetchPool(
+  params: { top?: number } = {},
+  signal?: AbortSignal,
+): Promise<PoolResponse> {
+  const q = new URLSearchParams();
+  if (params.top != null) q.set("top", String(params.top));
+
+  const res = await fetch(`${BASE}/api/pool?${q.toString()}`, { signal });
+  if (res.status === 503) throw new NotReadyError();
+  if (!res.ok) throw new Error(`API ${res.status}`);
+  return (await res.json()) as PoolResponse;
+}
+
+export { BASE as API_BASE_URL };

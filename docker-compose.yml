@@ -1,0 +1,15 @@
+services:
+  frontend:
+    build:
+      context: .
+      args:
+        # 建置期預設值 (執行期可由下方 environment 覆寫)
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000}
+    image: stock-quant-frontend:latest
+    container_name: stock-quant-frontend
+    ports:
+      - "5173:80"
+    environment:
+      # 執行期注入：容器啟動時產生 /config.js，前端讀此值連後端
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000}
+    restart: unless-stopped
