@@ -5,6 +5,11 @@
 
 > ⚠️ 篩選結果為機率性資訊參考，**非投資建議**。
 
+## 後端 API
+
+本前端搭配的後端（FastAPI，每分鐘刷新一份最新快照）位於另一個 repo：
+**https://github.com/jummy1124/stock_quant** —— 端點規格、篩選邏輯與啟動方式請參考該專案。
+
 ## CI/CD
 
 push 到 main 由 GitHub Actions 自動測試 + 建 Docker image 推 Artifact Registry；
