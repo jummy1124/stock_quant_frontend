@@ -88,24 +88,24 @@ export function StockTable({ rows }: { rows: BreakoutRow[] }) {
             const cls = changeClass(r.change_pct);
             return (
               <tr key={`${r.market_code}-${r.symbol}`}>
-                <td className="cell-symbol">
+                <td className="cell-symbol" data-label="代號 / 名稱">
                   <span className="cell-symbol__code">{r.symbol}</span>
                   <span className="cell-symbol__name">{r.name || "—"}</span>
                 </td>
-                <td className="cell-market">{r.market || "—"}</td>
-                <td className="num">{fmtNum(r.close)}</td>
-                <td className={`num cell-change ${cls}`}>
+                <td className="cell-market" data-label="市場">{r.market || "—"}</td>
+                <td className="num" data-label="現價">{fmtNum(r.close)}</td>
+                <td className={`num cell-change ${cls}`} data-label="漲跌">
                   <span>{fmtChange(r.change)}</span>
                   <span className="cell-change__pct">{fmtPct(r.change_pct)}</span>
                 </td>
-                <td className="num">{fmtLots(r.lots)}</td>
-                <td className="num">{fmtRatio(r.vol_ratio)}</td>
-                <td className="num">
+                <td className="num" data-label="量(張)">{fmtLots(r.lots)}</td>
+                <td className="num" data-label="量比">{fmtRatio(r.vol_ratio)}</td>
+                <td className="num" data-label="強度分">
                   <span className="score-badge" title="僅供排序，非投資評級">
                     {fmtNum(r.score, 1)}
                   </span>
                 </td>
-                <td>
+                <td data-label="入選理由">
                   <Reasons reasons={r.reasons} />
                 </td>
               </tr>

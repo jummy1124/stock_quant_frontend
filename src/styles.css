@@ -380,17 +380,167 @@ body {
   text-align: center;
 }
 
-/* ---------- RWD ---------- */
-@media (max-width: 640px) {
+/* ========== RWD：桌機 / 平板 / 手機 ========== */
+
+/* ---------- 平板 (≤1024px) ---------- */
+@media (max-width: 1024px) {
+  .screen-page {
+    padding: 18px 14px 40px;
+  }
+  .app-header__title h1 {
+    font-size: 20px;
+  }
+  /* 篩選列每欄佔較大空間、滑桿獨佔一行 */
+  .controls {
+    gap: 14px;
+  }
+  .controls__field--slider {
+    flex-basis: 100%;
+    order: 2;
+  }
+  /* 統計資訊換行不擠壓徽章 */
   .statusbar__stats {
     margin-left: 0;
     width: 100%;
   }
-  .stock-table {
+}
+
+/* ---------- 手機 (≤640px)：表格轉卡片式 ---------- */
+@media (max-width: 640px) {
+  .screen-page {
+    padding: 14px 10px 32px;
+  }
+
+  /* Header 直向堆疊 */
+  .app-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .app-header__title h1 {
+    font-size: 19px;
+  }
+  .disclaimer {
     font-size: 12px;
   }
-  .stock-table thead th,
+
+  /* StatusBar 直向堆疊 */
+  .statusbar__row {
+    gap: 8px;
+  }
+  .statusbar__age {
+    width: 100%;
+  }
+
+  /* 篩選列改直向、選單與滑桿各佔整行、加大觸控面積 */
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
+  .controls__field {
+    justify-content: space-between;
+  }
+  .controls__field--slider {
+    flex-wrap: wrap;
+  }
+  .controls__select {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+  .controls__slider {
+    flex-basis: 100%;
+    height: 24px;
+  }
+
+  /* 表格 → 卡片：隱藏表頭，每列變一張卡片 */
+  .table-wrap {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    overflow-x: visible;
+  }
+  .stock-table {
+    font-size: 14px;
+  }
+  .stock-table thead {
+    display: none;
+  }
+  .stock-table tbody tr {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 6px 14px;
+    margin-bottom: 12px;
+  }
+  .stock-table tbody tr:hover {
+    background: var(--surface);
+  }
   .stock-table tbody td {
-    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f1f3;
+  }
+  .stock-table tbody tr td:last-child {
+    border-bottom: none;
+  }
+  /* 左側欄位名稱（取自 data-label） */
+  .stock-table tbody td::before {
+    content: attr(data-label);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  /* 代號/名稱：當作卡片標題，橫向呈現 */
+  .cell-symbol {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .cell-symbol__code {
+    font-size: 16px;
+  }
+  /* 數值欄位靠右對齊（已 flex space-between，覆蓋 text-align） */
+  .num {
+    text-align: right;
+  }
+  .cell-change {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 6px;
+  }
+  /* 入選理由：標籤在上、tag 換行在下，避免擠壓 */
+  .stock-table tbody td[data-label="入選理由"] {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .reasons {
+    width: 100%;
+  }
+
+  .table-note {
+    border-top: none;
+    padding: 4px 2px 0;
+  }
+}
+
+/* ---------- 小手機 (≤380px)：再縮一級 ---------- */
+@media (max-width: 380px) {
+  .app-header__title h1 {
+    font-size: 18px;
+  }
+  .stock-table {
+    font-size: 13px;
+  }
+  .cell-symbol__code {
+    font-size: 15px;
   }
 }
