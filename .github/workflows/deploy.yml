@@ -1,0 +1,92 @@
+name: Daily Deploy to GCP VM
+
+on:
+  schedule:
+    - cron: "40 0 * * *" # UTC；08:40 Asia/Taipei（VM 排程 08:30 開機之後）
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "強制部署 (略過無更新檢查)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  GCP_REGION: ${{ vars.GCP_REGION }}
+  AR_REPOSITORY: ${{ vars.AR_REPOSITORY }}
+  IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+  GCE_VM_NAME: ${{ vars.GCE_VM_NAME }}
+  GCE_VM_ZONE: ${{ vars.GCE_VM_ZONE }}
+  VM_APP_DIR: ${{ vars.VM_APP_DIR }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SA }}
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - id: refs
+        run: |
+          set -euo pipefail
+          REG="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${AR_REPOSITORY}/${IMAGE_NAME}"
+          echo "registry=${REG}" >> "$GITHUB_OUTPUT"
+          echo "target_image=${REG}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - id: check
+        run: |
+          set -euo pipefail
+          REG="${{ steps.refs.outputs.registry }}"
+          TARGET="${{ steps.refs.outputs.target_image }}"
+          TARGET_DIGEST="$(gcloud artifacts docker images describe "${TARGET}" --format='value(image_summary.digest)' 2>/dev/null || true)"
+          if [ -z "${TARGET_DIGEST}" ]; then
+            echo "::error::找不到 image ${TARGET}。請確認 CI build-and-push 已對 main 的 ${GITHUB_SHA} 成功推送。"
+            exit 1
+          fi
+          CURRENT_DIGEST="$(gcloud artifacts docker images describe "${REG}:deployed" --format='value(image_summary.digest)' 2>/dev/null || true)"
+          FORCE="${{ github.event.inputs.force || 'false' }}"
+          if [ "${TARGET_DIGEST}" = "${CURRENT_DIGEST}" ] && [ "${FORCE}" != "true" ]; then
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Copy deploy assets to VM
+        if: steps.check.outputs.should_deploy == 'true'
+        run: |
+          set -euo pipefail
+          gcloud compute scp --zone "${GCE_VM_ZONE}" --tunnel-through-iap \
+            deploy/docker-compose.deploy.yml deploy/deploy_on_vm.sh \
+            "${GCE_VM_NAME}:${VM_APP_DIR}/" --quiet
+
+      - name: Deploy on VM
+        if: steps.check.outputs.should_deploy == 'true'
+        run: |
+          set -euo pipefail
+          TARGET="${{ steps.refs.outputs.target_image }}"
+          REGION_HOST="${GCP_REGION}-docker.pkg.dev"
+          gcloud compute ssh "${GCE_VM_NAME}" --zone "${GCE_VM_ZONE}" --tunnel-through-iap --quiet \
+            --command="cd '${VM_APP_DIR}' && chmod +x deploy_on_vm.sh && \
+              APP_DIR='${VM_APP_DIR}' IMAGE='${TARGET}' REGION_HOST='${REGION_HOST}' \
+              bash deploy_on_vm.sh"
+
+      - name: Mark image as deployed
+        if: steps.check.outputs.should_deploy == 'true'
+        run: |
+          set -euo pipefail
+          gcloud artifacts docker tags add \
+            "${{ steps.refs.outputs.target_image }}" \
+            "${{ steps.refs.outputs.registry }}:deployed" --quiet

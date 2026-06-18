@@ -10,8 +10,8 @@ RUN npm ci || npm install
 
 # 複製原始碼並打包
 COPY . .
-# VITE_API_BASE_URL 為建置期預設值；執行期可由 config.js 覆寫 (見 docker-entrypoint.sh)
-ARG VITE_API_BASE_URL=http://localhost:8000
+# VITE_API_BASE_URL 預設留空 = 同源（走 nginx /api 反向代理）；執行期可由 config.js 覆寫
+ARG VITE_API_BASE_URL=
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 RUN npm run build
 
@@ -28,8 +28,8 @@ COPY --from=build /app/dist /usr/share/nginx/html
 COPY docker-entrypoint.sh /docker-entrypoint.d/40-app-config.sh
 RUN chmod +x /docker-entrypoint.d/40-app-config.sh
 
-# 執行期可覆寫；預設指向同主機 8000
-ENV VITE_API_BASE_URL=http://localhost:8000
+# 執行期可覆寫；預設留空 = 同源（nginx 代理 /api 到後端）
+ENV VITE_API_BASE_URL=
 
 EXPOSE 80
 # 沿用 nginx 官方 image 的 entrypoint (會執行 /docker-entrypoint.d/*.sh 後啟動 nginx)
