@@ -1,0 +1,12 @@
+# VM 端用預建 image 部署（不在 VM build）。IMAGE 由 deploy_on_vm.sh 帶入。
+services:
+  app:
+    image: ${IMAGE}
+    container_name: stock-quant-frontend
+    ports:
+      - "5173:80" # 對外 5173 → 容器內 nginx 80（沿用現有埠，免改防火牆）
+    # nginx 反向代理 /api 到 host 上的後端 (8000)，需要這條才能解析 host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    # 同源架構：前端不需任何執行期環境變數，故不掛 .env / volumes

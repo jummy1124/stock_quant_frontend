@@ -5,6 +5,16 @@
 
 > ⚠️ 篩選結果為機率性資訊參考，**非投資建議**。
 
+## CI/CD
+
+push 到 main 由 GitHub Actions 自動測試 + 建 Docker image 推 Artifact Registry；
+每日固定時段（08:40 Asia/Taipei）排程比對有無新版，有才經 IAP SSH 部署到 GCP VM，
+含健康檢查與失敗自動回滾。驗證採 Workload Identity Federation（無金鑰）。
+
+- workflows：`.github/workflows/ci.yml`、`deploy.yml`
+- 部署資產：`deploy/docker-compose.deploy.yml`、`deploy_on_vm.sh`、`setup_gcp.sh`
+- 首次設定與排錯見 `CICD_PLAYBOOK_GCP_VM.md`
+
 ## 快速開始
 
 ```bash
