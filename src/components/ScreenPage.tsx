@@ -1,15 +1,18 @@
 // src/components/ScreenPage.tsx
 import { useState } from "react";
+import type { BreakoutRow } from "../types/screen";
 import { useScreen } from "../hooks/useScreen";
 import { Header } from "./Header";
 import { StatusBar } from "./StatusBar";
 import { Controls } from "./Controls";
 import { StockTable } from "./StockTable";
+import { StockDetailModal } from "./StockDetailModal";
 import { EmptyState, LoadingState, NotReadyState } from "./States";
 
 export function ScreenPage() {
   const [top, setTop] = useState(0); // 0 = 全部
   const [minScore, setMinScore] = useState(0);
+  const [selected, setSelected] = useState<BreakoutRow | null>(null);
 
   const { data, loading, notReady, error } = useScreen({
     top: top || undefined,
@@ -39,9 +42,13 @@ export function ScreenPage() {
         ) : results.length === 0 ? (
           <EmptyState />
         ) : (
-          <StockTable rows={results} />
+          <StockTable rows={results} onSelect={setSelected} />
         )}
       </main>
+
+      {selected && (
+        <StockDetailModal row={selected} onClose={() => setSelected(null)} />
+      )}
 
       <footer className="app-footer">
         ⚠️ 篩選結果為機率性資訊參考，非投資建議。資料源依交易時間自動切換（盤中即時 / 收盤）。

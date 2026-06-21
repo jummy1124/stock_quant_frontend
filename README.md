@@ -3,7 +3,10 @@
 即時顯示台股盤中「起漲」篩選結果（通過 6 項硬條件、依強度分排序）。
 技術棧：**React + TypeScript + Vite**，純 CSS。透過輪詢取後端 `GET /api/screen`。
 
-> ⚠️ 篩選結果為機率性資訊參考，**非投資建議**。
+**點選任一檔個股**會彈出該檔近 6 個月歷史走勢圖（K 棒 + 成交量 + MA5/20/60），
+資料來自後端 `GET /api/history/{symbol}`，K 線以 [lightweight-charts](https://github.com/tradingview/lightweight-charts) 繪製。
+
+> ⚠️ 篩選結果與歷史資訊均為機率性資訊參考，**非投資建議**。
 
 ## 後端 API
 
