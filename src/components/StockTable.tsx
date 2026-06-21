@@ -30,7 +30,14 @@ function sortVal(row: BreakoutRow, key: SortKey): number {
   return v == null || Number.isNaN(v) ? -Infinity : v;
 }
 
-export function StockTable({ rows }: { rows: BreakoutRow[] }) {
+export function StockTable({
+  rows,
+  onSelect,
+}: {
+  rows: BreakoutRow[];
+  /** 點選某列時呼叫（開啟歷史走勢） */
+  onSelect?: (row: BreakoutRow) => void;
+}) {
   // 預設 null：照後端原順序 (已依 score 由高到低排好)
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -86,11 +93,30 @@ export function StockTable({ rows }: { rows: BreakoutRow[] }) {
         <tbody>
           {sorted.map((r) => {
             const cls = changeClass(r.change_pct);
+            const clickable = Boolean(onSelect);
             return (
-              <tr key={`${r.market_code}-${r.symbol}`}>
+              <tr
+                key={`${r.market_code}-${r.symbol}`}
+                className={clickable ? "clickable-row" : undefined}
+                onClick={clickable ? () => onSelect!(r) : undefined}
+                onKeyDown={
+                  clickable
+                    ? (e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          onSelect!(r);
+                        }
+                      }
+                    : undefined
+                }
+                tabIndex={clickable ? 0 : undefined}
+                role={clickable ? "button" : undefined}
+                title={clickable ? "查看歷史K線" : undefined}
+              >
                 <td className="cell-symbol" data-label="代號 / 名稱">
                   <span className="cell-symbol__code">{r.symbol}</span>
                   <span className="cell-symbol__name">{r.name || "—"}</span>
+                  {clickable && <span className="cell-symbol__chart" aria-hidden="true">📈</span>}
                 </td>
                 <td className="cell-market" data-label="市場">{r.market || "—"}</td>
                 <td className="num" data-label="現價">{fmtNum(r.close)}</td>
@@ -114,6 +140,7 @@ export function StockTable({ rows }: { rows: BreakoutRow[] }) {
         </tbody>
       </table>
       <p className="table-note">
+        點任一列可查看該檔<strong>歷史K線（K棒 + 均線 + 成交量）</strong>。
         強度分由「量增幅度 + 突破幅度 + 月線斜率」綜合，<strong>僅供排序</strong>，非漲跌預測或投資評級。
       </p>
     </div>
