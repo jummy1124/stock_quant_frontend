@@ -1,5 +1,5 @@
 // src/components/RecordsPage.tsx
-// 「我的紀錄」分頁：列出已設定目標價/成本價的個股，含報酬、距目標與紀錄時間。
+// 「我的紀錄」分頁：列出個股紀錄（目標價/成本價 + 報酬・距目標 + 紀錄時間），資料來自非同步 repo。
 import { useRecords } from "../records/RecordsContext";
 import { fmtNum, fmtPct, fmtDateTime } from "../utils/format";
 
@@ -9,9 +9,22 @@ function signClass(v: number | null): string {
 }
 
 export function RecordsPage() {
-  const { records, remove } = useRecords();
-  // 最新紀錄排前面
+  const { records, remove, loading, error, reload } = useRecords();
   const list = Object.values(records).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+
+  if (loading) {
+    return <div className="records-empty"><p className="records-empty__main">載入紀錄中…</p></div>;
+  }
+
+  if (error) {
+    return (
+      <div className="records-empty">
+        <p className="records-empty__main records-empty__err">載入失敗</p>
+        <p className="records-empty__hint">{error}</p>
+        <button className="remove-btn" onClick={reload}>重新載入</button>
+      </div>
+    );
+  }
 
   if (list.length === 0) {
     return (
@@ -68,7 +81,7 @@ export function RecordsPage() {
                 </td>
                 <td className="cell-time" data-label="紀錄時間">{fmtDateTime(r.updatedAt)}</td>
                 <td data-label="操作">
-                  <button className="remove-btn" onClick={() => remove(r.marketCode, r.symbol)}>
+                  <button className="remove-btn" onClick={() => void remove(r.marketCode, r.symbol)}>
                     移除
                   </button>
                 </td>
@@ -78,7 +91,7 @@ export function RecordsPage() {
         </tbody>
       </table>
       <p className="table-note">
-        ＊ 排版示意：以上紀錄僅存在本次瀏覽，重新整理即消失（尚未接後端 / 帳號）。
+        ＊ 多人版預備：此頁資料經 <code>/userapi/records</code> 取得（dev 由 MSW 模擬、localStorage 暫存）。
         報酬率以「紀錄當下現價」對成本價試算。
       </p>
     </div>

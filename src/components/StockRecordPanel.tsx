@@ -1,5 +1,5 @@
 // src/components/StockRecordPanel.tsx
-// 彈窗右側「我的紀錄」面板：目標價 / 成本價 + 即時報酬・距目標試算，並顯示紀錄日期時間。
+// 彈窗右側「我的紀錄」面板：目標價 / 成本價 + 即時試算，儲存走非同步 repo（dev 由 MSW 接）。
 import { useState } from "react";
 import type { BreakoutRow } from "../types/screen";
 import { useRecords } from "../records/RecordsContext";
@@ -13,7 +13,9 @@ export function StockRecordPanel({ row }: { row: BreakoutRow }) {
     existing?.targetPrice != null ? String(existing.targetPrice) : "",
   );
   const [cost, setCost] = useState(existing?.costPrice != null ? String(existing.costPrice) : "");
+  const [pending, setPending] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   const close = row.close;
   const targetNum = target.trim() === "" ? null : Number(target);
@@ -26,19 +28,27 @@ export function StockRecordPanel({ row }: { row: BreakoutRow }) {
   const upside =
     close != null && targetNum != null && close > 0 ? ((targetNum - close) / close) * 100 : null;
 
-  function save() {
-    if (!targetValid || !costValid) return;
-    upsert({
-      symbol: row.symbol,
-      name: row.name,
-      market: row.market,
-      marketCode: row.market_code,
-      lastClose: close,
-      targetPrice: targetNum,
-      costPrice: costNum,
-    });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1800);
+  async function save() {
+    if (!targetValid || !costValid || pending) return;
+    setPending(true);
+    setErr(null);
+    try {
+      await upsert({
+        symbol: row.symbol,
+        name: row.name,
+        market: row.market,
+        marketCode: row.market_code,
+        lastClose: close,
+        targetPrice: targetNum,
+        costPrice: costNum,
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 1800);
+    } catch (e) {
+      setErr((e as Error).message || "儲存失敗");
+    } finally {
+      setPending(false);
+    }
   }
 
   function signClass(v: number | null): string {
@@ -87,15 +97,21 @@ export function StockRecordPanel({ row }: { row: BreakoutRow }) {
         </div>
       </div>
 
-      <button className="record-save" onClick={save} disabled={!targetValid || !costValid}>
-        {saved ? "已儲存 ✓" : "儲存"}
+      <button
+        className="record-save"
+        onClick={save}
+        disabled={!targetValid || !costValid || pending}
+      >
+        {pending ? "儲存中…" : saved ? "已儲存 ✓" : "儲存"}
       </button>
+
+      {err && <p className="record-error">儲存失敗：{err}</p>}
 
       {existing?.updatedAt && (
         <p className="record-time">紀錄時間：{fmtDateTime(existing.updatedAt)}</p>
       )}
 
-      <p className="record-hint">＊ 排版示意：資料僅存在本次瀏覽（重新整理即消失），尚未接後端。</p>
+      <p className="record-hint">＊ 多人版預備：已走真實 fetch /userapi，dev 由 MSW 模擬後端。</p>
     </aside>
   );
 }
