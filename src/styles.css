@@ -750,3 +750,218 @@ body {
     width: 100%;
   }
 }
+
+/* ============================================================
+   個股紀錄：分頁 + 彈窗面板 + 紀錄列表 + 自選星號
+   （排版草稿，資料未持久化）
+   ============================================================ */
+
+/* ---- 分頁切換 ---- */
+.app-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.tabs {
+  display: flex;
+  gap: 4px;
+  padding: 14px 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.tab {
+  position: relative;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 10px 16px;
+  cursor: pointer;
+  border-radius: 8px 8px 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.tab:hover {
+  color: var(--text);
+  background: #f0f1f3;
+}
+.tab--active {
+  color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.tab__badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+}
+/* 分頁模式下 .screen-page 已含外距，避免雙重置中 */
+.app-shell .screen-page {
+  max-width: none;
+}
+
+/* ---- 彈窗：左圖右面板 ---- */
+.modal {
+  width: min(1080px, 100%);
+}
+.modal__body {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  padding: 0;
+}
+.modal__chart {
+  flex: 1;
+  min-width: 0;
+  padding: 8px;
+}
+.record-panel {
+  width: 290px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #fafbfc;
+}
+.record-panel__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.record-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.record-field input {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 15px;
+  color: var(--text);
+  text-align: right;
+}
+.record-field input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.record-field input.invalid {
+  border-color: var(--error);
+  background: var(--error-bg);
+}
+.record-calc {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.record-calc__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.record-calc__row .num {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.record-calc__row .num.up {
+  color: var(--up);
+}
+.record-calc__row .num.down {
+  color: var(--down);
+}
+.record-save {
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.record-save:disabled {
+  background: #b9c2d0;
+  cursor: not-allowed;
+}
+.record-hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.record-time {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.cell-time {
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* ---- 紀錄列表頁 ---- */
+.records-table th:last-child,
+.records-table td:last-child {
+  text-align: center;
+}
+.remove-btn {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.remove-btn:hover {
+  border-color: var(--error);
+  color: var(--error);
+  background: var(--error-bg);
+}
+.records-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+.records-empty__main {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+.records-empty__hint {
+  margin: 0 auto;
+  max-width: 420px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ---- 手機：彈窗改上下堆疊 ---- */
+@media (max-width: 760px) {
+  .modal__body {
+    flex-direction: column;
+  }
+  .record-panel {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+}

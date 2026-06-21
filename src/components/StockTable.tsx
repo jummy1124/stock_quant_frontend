@@ -35,7 +35,7 @@ export function StockTable({
   onSelect,
 }: {
   rows: BreakoutRow[];
-  /** 點選某列時呼叫（開啟歷史走勢） */
+  /** 點選某列時呼叫（開啟歷史走勢 + 紀錄面板） */
   onSelect?: (row: BreakoutRow) => void;
 }) {
   // 預設 null：照後端原順序 (已依 score 由高到低排好)
@@ -111,7 +111,7 @@ export function StockTable({
                 }
                 tabIndex={clickable ? 0 : undefined}
                 role={clickable ? "button" : undefined}
-                title={clickable ? "查看歷史K線" : undefined}
+                title={clickable ? "查看歷史K線與紀錄" : undefined}
               >
                 <td className="cell-symbol" data-label="代號 / 名稱">
                   <span className="cell-symbol__code">{r.symbol}</span>
@@ -140,8 +140,8 @@ export function StockTable({
         </tbody>
       </table>
       <p className="table-note">
-        點任一列可查看該檔<strong>歷史K線（K棒 + 均線 + 成交量）</strong>。
-        強度分由「量增幅度 + 突破幅度 + 月線斜率」綜合，<strong>僅供排序</strong>，非漲跌預測或投資評級。
+        點任一列查看<strong>歷史K線 + 我的紀錄</strong>。
+        強度分由「量增幅度 + 突破幅度 + 月線斜率」綜合，<strong>僅供排序</strong>，非投資評級。
       </p>
     </div>
   );

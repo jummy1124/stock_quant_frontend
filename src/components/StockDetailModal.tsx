@@ -1,11 +1,12 @@
 // src/components/StockDetailModal.tsx
-// 點選個股後彈出：抓 6 個月歷史日K，畫 K棒 + 量 + MA5/20/60。
+// 點選個股後彈出：左側 6 個月歷史K線（K棒 + 量 + MA5/20/60），右側「我的紀錄」面板。
 import { useEffect, useState } from "react";
 import type { BreakoutRow } from "../types/screen";
 import type { HistoryResponse } from "../types/history";
 import { fetchHistory } from "../api/history";
 import { fmtNum, fmtPct, changeClass } from "../utils/format";
 import { StockChart } from "./StockChart";
+import { StockRecordPanel } from "./StockRecordPanel";
 
 export function StockDetailModal({
   row,
@@ -54,7 +55,7 @@ export function StockDetailModal({
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-label={`${row.symbol} ${row.name} 歷史走勢`}
+        aria-label={`${row.symbol} ${row.name} 歷史走勢與紀錄`}
       >
         <header className="modal__head">
           <div className="modal__title">
@@ -83,15 +84,19 @@ export function StockDetailModal({
         </div>
 
         <div className="modal__body">
-          {loading ? (
-            <div className="modal__state">載入歷史資料中…</div>
-          ) : error ? (
-            <div className="modal__state modal__state--err">歷史資料載入失敗：{error}</div>
-          ) : data && data.candles.length > 0 ? (
-            <StockChart candles={data.candles} />
-          ) : (
-            <div className="modal__state">查無此檔歷史資料。</div>
-          )}
+          <div className="modal__chart">
+            {loading ? (
+              <div className="modal__state">載入歷史資料中…</div>
+            ) : error ? (
+              <div className="modal__state modal__state--err">歷史資料載入失敗：{error}</div>
+            ) : data && data.candles.length > 0 ? (
+              <StockChart candles={data.candles} />
+            ) : (
+              <div className="modal__state">查無此檔歷史資料。</div>
+            )}
+          </div>
+
+          <StockRecordPanel row={row} />
         </div>
 
         <footer className="modal__foot">
