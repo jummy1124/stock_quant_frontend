@@ -67,3 +67,12 @@ export function fmtClock(iso: string | null | undefined): string {
   if (Number.isNaN(d.getTime())) return iso;
   return d.toLocaleTimeString("zh-TW", { hour12: false });
 }
+
+/** ISO → 本地「YYYY-MM-DD HH:mm」，給紀錄時間用；null → "—" */
+export function fmtDateTime(iso: string | null | undefined): string {
+  if (!iso) return DASH;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
