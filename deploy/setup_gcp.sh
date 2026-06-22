@@ -35,8 +35,10 @@ echo "==> 3. 部署 SA"
 gcloud iam service-accounts create "${DEPLOY_SA_NAME}" --display-name="GitHub Actions deployer" 2>/dev/null || echo "   (已存在)"
 
 echo "==> 4. 授權部署 SA"
+# repoAdmin（含 tags.delete）：deploy 會用 `tags add` 移動 `deployed` tag，需要刪除舊 tag 的權限；
+# 純 writer 在第二次部署移動 tag 時會報 artifactregistry.tags.delete PERMISSION_DENIED。
 gcloud artifacts repositories add-iam-policy-binding "${AR_REPOSITORY}" --location="${REGION}" \
-  --member="serviceAccount:${DEPLOY_SA_EMAIL}" --role="roles/artifactregistry.writer" >/dev/null
+  --member="serviceAccount:${DEPLOY_SA_EMAIL}" --role="roles/artifactregistry.repoAdmin" >/dev/null
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
   --member="serviceAccount:${DEPLOY_SA_EMAIL}" --role="roles/iap.tunnelResourceAccessor" --condition=None >/dev/null
 gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
