@@ -1186,3 +1186,41 @@ body {
     background-position: 0 50%;
   }
 }
+
+/* ============================================================
+   彈窗：盤中即時價徽章
+   ============================================================ */
+.modal__live {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 12px;
+  border-radius: 999px;
+  color: var(--text-muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+.modal__live.is-live {
+  color: var(--up);
+  background: var(--up-bg);
+  border-color: transparent;
+}
+.modal__live.is-live::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--up);
+  animation: live-pulse 1.4s ease-in-out infinite;
+}
+@keyframes live-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
