@@ -78,7 +78,26 @@ VITE_API_BASE_URL=http://other-host:8000 docker compose up -d --build
 | 變數 | 預設 | 說明 |
 | --- | --- | --- |
 | `VITE_API_BASE_URL` | 空（同源） | 留空走 nginx `/api` 代理；填完整 URL 則瀏覽器直連該後端（需 CORS） |
-| `BACKEND_URL` | `http://localhost:8000` | 僅開發用：vite dev server 的 `/api` 代理目標 |
+| `BACKEND_URL` | `http://localhost:8000` | 僅開發用：vite dev server 的 `/api` 代理目標（篩選後端） |
+| `USERDATA_URL` | `http://localhost:8100` | 僅開發用：vite dev server 的 `/userapi` 代理目標（帳號 + 個股紀錄後端） |
+| `VITE_ENABLE_MSW` | 未設（不啟用） | 設 `true` 時於 dev 用 MSW 模擬 `/userapi`（假 auth + records）；不設則直連真後端 |
+
+## 帳號 / 個股紀錄（/userapi）
+
+「我的紀錄」分頁需登入。前端的帳號與紀錄走 `/userapi/*`，契約見
+[`USERDATA_API.md`](./USERDATA_API.md)，由獨立後端 `stock_quant_userdata`（FastAPI + PostgreSQL）提供。
+
+兩種開發模式：
+
+- **直連真後端（預設）**：先把 `stock_quant_userdata` 跑在 `localhost:8100`
+  （`docker compose up` 或 `poetry run uvicorn app.main:app --port 8100`），再 `npm run dev`。
+  vite 會把 `/userapi` 代理過去，同源免 CORS。註冊 → 登入 → 紀錄會真的存進後端 DB。
+- **MSW 模擬（無後端）**：在 `.env` 設 `VITE_ENABLE_MSW=true`，首次需
+  `npx msw init public/ --save` 產生 worker。此模式下 auth 與 records 全在瀏覽器以
+  localStorage 模擬，並以假 token 做使用者隔離。
+
+正式環境一律不載入 MSW，請求由 nginx `location /userapi/` 反代到 userdata 服務（見 `nginx.conf`）。
+登入 token 存於 `localStorage`，重整後維持登入；任何請求收到 `401` 會自動登出並導回登入。
 
 ## 指令
 
@@ -97,6 +116,16 @@ src/
   api/screen.ts          # fetchScreen / fetchPool；503 → NotReadyError
   hooks/useScreen.ts     # 30s 輪詢、AbortController 清理、保留前份資料
   utils/format.ts        # 數字/百分比/相對時間格式化 + 紅漲綠跌 class
+  api/userClient.ts      # /userapi 共用 client：JWT 注入、401 處理、逾時、錯誤擷取
+  api/authApi.ts         # login / register / me / logout（snake_case ↔ camelCase）
+  auth/
+    types.ts             # User / AuthState
+    AuthContext.tsx      # AuthProvider + useAuth；token 還原、401 自動登出
+  records/
+    types.ts             # StockRecord / RecordDraft
+    RecordsRepo.ts       # InMemory / Http 資料來源抽象
+    RecordsContext.tsx   # 依登入狀態載入；upsert/remove 樂觀更新 + 回滾
+  mocks/                 # MSW（假 auth + records，VITE_ENABLE_MSW=true 才載入）
   components/
     ScreenPage.tsx       # 主頁面組裝
     Header.tsx           # 標題 + 免責聲明
@@ -105,7 +134,11 @@ src/
     StockTable.tsx       # 主清單 (可點欄位排序)
     Reasons.tsx          # reasons → tag
     States.tsx           # 載入中 / 資料準備中(503) / 空清單
-  App.tsx
+    RecordsPage.tsx      # 「我的紀錄」清單（骨架載入 / 錯誤重試）
+    StockRecordPanel.tsx # 彈窗內目標價/成本價 + 試算 + 儲存
+    auth/                # LoginForm / RegisterForm / AuthPanel / UserMenu
+    ui/Toast.tsx         # 全域 toast（useToast）
+  App.tsx                # Toast → Auth → Records Provider 組合 + 分頁
   main.tsx
 ```
 
