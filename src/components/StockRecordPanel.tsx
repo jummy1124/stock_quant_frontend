@@ -3,10 +3,12 @@
 import { useState } from "react";
 import type { BreakoutRow } from "../types/screen";
 import { useRecords } from "../records/RecordsContext";
+import { useToast } from "./ui/Toast";
 import { fmtNum, fmtPct, fmtDateTime } from "../utils/format";
 
 export function StockRecordPanel({ row }: { row: BreakoutRow }) {
   const { get, upsert } = useRecords();
+  const toast = useToast();
   const existing = get(row.market_code, row.symbol);
 
   const [target, setTarget] = useState(
@@ -43,9 +45,12 @@ export function StockRecordPanel({ row }: { row: BreakoutRow }) {
         costPrice: costNum,
       });
       setSaved(true);
+      toast.success("已儲存");
       setTimeout(() => setSaved(false), 1800);
     } catch (e) {
-      setErr((e as Error).message || "儲存失敗");
+      const msg = (e as Error).message || "儲存失敗";
+      setErr(msg);
+      toast.error(`儲存失敗：${msg}`);
     } finally {
       setPending(false);
     }
