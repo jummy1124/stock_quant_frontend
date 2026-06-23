@@ -1,6 +1,6 @@
 // src/hooks/useScreen.ts
 import { useEffect, useRef, useState } from "react";
-import type { ScreenResponse } from "../types/screen";
+import type { ScreenResponse, ScreenSettings } from "../types/screen";
 import { fetchScreen, NotReadyError } from "../api/screen";
 
 export interface ScreenState {
@@ -12,6 +12,8 @@ export interface ScreenState {
 
 export interface UseScreenOptions {
   top?: number;
+  /** 使用者篩選參數；改變時立即重新查詢 */
+  settings?: ScreenSettings;
   /** 輪詢間隔，預設 30s */
   intervalMs?: number;
 }
@@ -24,7 +26,7 @@ export interface UseScreenOptions {
  * - 卸載 / 參數變更時 AbortController 取消在途請求並清除計時器
  */
 export function useScreen(opts: UseScreenOptions = {}): ScreenState {
-  const { top, intervalMs = 30_000 } = opts;
+  const { top, settings, intervalMs = 30_000 } = opts;
   const [state, setState] = useState<ScreenState>({
     data: null,
     loading: true,
@@ -33,13 +35,18 @@ export function useScreen(opts: UseScreenOptions = {}): ScreenState {
   });
   const timer = useRef<ReturnType<typeof setInterval>>();
 
+  // 把 settings 攤平成穩定字串，當作 effect 依賴 (參數一變就重查)
+  const settingsKey = settings ? JSON.stringify(settings) : "";
+
   useEffect(() => {
     let alive = true;
     const ac = new AbortController();
+    // 參數變更時先回到載入狀態，避免顯示舊參數的結果
+    setState((s) => ({ ...s, loading: true }));
 
     async function tick() {
       try {
-        const data = await fetchScreen({ top }, ac.signal);
+        const data = await fetchScreen({ top, ...settings }, ac.signal);
         if (!alive) return;
         setState({ data, loading: false, notReady: false, error: null });
       } catch (e) {
@@ -65,7 +72,9 @@ export function useScreen(opts: UseScreenOptions = {}): ScreenState {
       ac.abort();
       if (timer.current) clearInterval(timer.current);
     };
-  }, [top, intervalMs]);
+    // settingsKey 代表 settings 內容，內容變更即重建 effect 重新查詢
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [top, intervalMs, settingsKey]);
 
   return state;
 }

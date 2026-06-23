@@ -1,5 +1,9 @@
 // src/api/screen.ts
-import type { PoolResponse, ScreenResponse } from "../types/screen";
+import type {
+  PoolResponse,
+  ScreenResponse,
+  ScreenSettings,
+} from "../types/screen";
 
 // API base URL 解析優先序：
 //   1. 執行期注入 window.__APP_CONFIG__.API_BASE_URL (Docker entrypoint 產生 /config.js)
@@ -31,9 +35,26 @@ export class NotReadyError extends Error {
   }
 }
 
-export interface ScreenParams {
+export interface ScreenParams extends Partial<ScreenSettings> {
   /** 只取前 N 名，0 = 全部 */
   top?: number;
+}
+
+/** 把篩選參數序列化成 query string (省略的欄位後端會套用預設值)。 */
+function buildScreenQuery(params: ScreenParams): URLSearchParams {
+  const q = new URLSearchParams();
+  if (params.top != null) q.set("top", String(params.top));
+  if (params.min_change != null) q.set("min_change", String(params.min_change));
+  if (params.exclude_limit_up != null)
+    q.set("exclude_limit_up", String(params.exclude_limit_up));
+  if (params.vol_ratio != null) q.set("vol_ratio", String(params.vol_ratio));
+  if (params.ma_short != null) q.set("ma_short", String(params.ma_short));
+  if (params.ma_mid != null) q.set("ma_mid", String(params.ma_mid));
+  if (params.ma_slope_lookback != null)
+    q.set("ma_slope_lookback", String(params.ma_slope_lookback));
+  if (params.vol_projection != null)
+    q.set("vol_projection", String(params.vol_projection));
+  return q;
 }
 
 /**
@@ -45,8 +66,7 @@ export async function fetchScreen(
   params: ScreenParams = {},
   signal?: AbortSignal,
 ): Promise<ScreenResponse> {
-  const q = new URLSearchParams();
-  if (params.top != null) q.set("top", String(params.top));
+  const q = buildScreenQuery(params);
 
   const res = await fetch(`${BASE}/api/screen?${q.toString()}`, { signal });
   if (res.status === 503) throw new NotReadyError();
@@ -54,13 +74,29 @@ export async function fetchScreen(
   return (await res.json()) as ScreenResponse;
 }
 
+/** 取得後端篩選參數預設值 (前端「恢復預設」的單一真實來源)。失敗時呼叫端可退用內建預設。 */
+export async function fetchScreenDefaults(
+  signal?: AbortSignal,
+): Promise<ScreenSettings> {
+  const res = await fetch(`${BASE}/api/screen-defaults`, { signal });
+  if (!res.ok) throw new Error(`API ${res.status}`);
+  return (await res.json()) as ScreenSettings;
+}
+
 /** 取得第一層漲幅池 (除錯/備用) */
 export async function fetchPool(
-  params: { top?: number } = {},
+  params: {
+    top?: number;
+    min_change?: number;
+    exclude_limit_up?: boolean;
+  } = {},
   signal?: AbortSignal,
 ): Promise<PoolResponse> {
   const q = new URLSearchParams();
   if (params.top != null) q.set("top", String(params.top));
+  if (params.min_change != null) q.set("min_change", String(params.min_change));
+  if (params.exclude_limit_up != null)
+    q.set("exclude_limit_up", String(params.exclude_limit_up));
 
   const res = await fetch(`${BASE}/api/pool?${q.toString()}`, { signal });
   if (res.status === 503) throw new NotReadyError();

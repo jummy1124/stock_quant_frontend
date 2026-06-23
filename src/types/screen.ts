@@ -65,3 +65,30 @@ export interface HealthResponse {
   ready: boolean;
   has_snapshot: boolean;
 }
+
+/**
+ * 使用者可調的篩選參數 (對應後端 /api/screen 的 query)。
+ * 預設值見 DEFAULT_SETTINGS（與原專案設定一致）；後端 /api/screen-defaults 為單一真實來源。
+ */
+export interface ScreenSettings {
+  // 第一層 漲幅池
+  min_change: number; // 漲幅下限 %
+  exclude_limit_up: boolean; // 排除已鎖漲停 (收盤 ≤ 漲停前一檔)
+  // 第二層 起漲點 6 條件
+  vol_ratio: number; // 條件3 當日量/昨量下限
+  ma_short: number; // 5MA 天數
+  ma_mid: number; // 月均線天數
+  ma_slope_lookback: number; // 月線上彎回看天數
+  vol_projection: boolean; // 條件3 是否用全日預估量
+}
+
+/** 原專案預設值（後端首次載入或離線時的後備；以 /api/screen-defaults 為準） */
+export const DEFAULT_SETTINGS: ScreenSettings = {
+  min_change: 3.0,
+  exclude_limit_up: true,
+  vol_ratio: 1.2,
+  ma_short: 5,
+  ma_mid: 20,
+  ma_slope_lookback: 5,
+  vol_projection: false,
+};

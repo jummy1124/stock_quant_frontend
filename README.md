@@ -3,6 +3,11 @@
 即時顯示台股盤中「起漲」篩選結果（通過 6 項硬條件）。
 技術棧：**React + TypeScript + Vite**，純 CSS。透過輪詢取後端 `GET /api/screen`。
 
+頁面上的「**篩選條件**」面板可即時調整漲幅池與起漲點參數（漲幅下限、是否排除已鎖漲停、
+量增倍數、短/月均線天數、月線上彎回看天數、量能是否用全日預估）。參數隨請求帶給後端即時
+重算，**預設值＝原專案設定**；設定會存在瀏覽器 `localStorage`，下次開啟自動沿用，並可一鍵
+「恢復預設」（預設值以後端 `GET /api/screen-defaults` 為準）。
+
 **點選任一檔個股**會彈出該檔近 6 個月歷史走勢圖（K 棒 + 成交量 + MA5/20/60），
 資料來自後端 `GET /api/history/{symbol}`，K 線以 [lightweight-charts](https://github.com/tradingview/lightweight-charts) 繪製。
 
@@ -112,9 +117,9 @@ VITE_API_BASE_URL=http://other-host:8000 docker compose up -d --build
 
 ```
 src/
-  types/screen.ts        # 後端契約型別 (Meta / StockRow / BreakoutRow / ...)
-  api/screen.ts          # fetchScreen / fetchPool；503 → NotReadyError
-  hooks/useScreen.ts     # 30s 輪詢、AbortController 清理、保留前份資料
+  types/screen.ts        # 後端契約型別 (Meta / StockRow / BreakoutRow / ScreenSettings / DEFAULT_SETTINGS)
+  api/screen.ts          # fetchScreen / fetchPool / fetchScreenDefaults；帶篩選參數；503 → NotReadyError
+  hooks/useScreen.ts     # 30s 輪詢、帶 settings（變更即重查）、AbortController 清理、保留前份資料
   utils/format.ts        # 數字/百分比/相對時間格式化 + 紅漲綠跌 class
   api/userClient.ts      # /userapi 共用 client：JWT 注入、401 處理、逾時、錯誤擷取
   api/authApi.ts         # login / register / me / logout（snake_case ↔ camelCase）
@@ -130,7 +135,7 @@ src/
     ScreenPage.tsx       # 主頁面組裝
     Header.tsx           # 標題 + 免責聲明
     StatusBar.tsx        # 資料源徽章 / 新鮮度 / 統計 / warning / error
-    Controls.tsx         # top 下拉
+    Controls.tsx         # top 下拉 + 可展開「篩選條件」面板（漲幅池/起漲參數 + 恢復預設）
     StockTable.tsx       # 主清單 (可點欄位排序)
     Reasons.tsx          # reasons → tag
     States.tsx           # 載入中 / 資料準備中(503) / 空清單
