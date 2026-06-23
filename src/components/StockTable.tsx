@@ -9,7 +9,6 @@ import {
   fmtPct,
   fmtRatio,
 } from "../utils/format";
-import { Reasons } from "./Reasons";
 
 type SortKey = "change_pct" | "vol_ratio" | "close" | "lots";
 type SortDir = "asc" | "desc";
@@ -21,7 +20,6 @@ const COLUMNS: { key: SortKey | null; label: string; sortable: boolean }[] = [
   { key: "change_pct", label: "漲跌", sortable: true },
   { key: "lots", label: "量(張)", sortable: true },
   { key: "vol_ratio", label: "量比", sortable: true },
-  { key: null, label: "入選理由", sortable: false },
 ];
 
 function sortVal(row: BreakoutRow, key: SortKey): number {
@@ -125,9 +123,6 @@ export function StockTable({
                 </td>
                 <td className="num" data-label="量(張)">{fmtLots(r.lots)}</td>
                 <td className="num" data-label="量比">{fmtRatio(r.vol_ratio)}</td>
-                <td data-label="入選理由">
-                  <Reasons reasons={r.reasons} />
-                </td>
               </tr>
             );
           })}

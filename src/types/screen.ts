@@ -47,7 +47,6 @@ export interface BreakoutRow extends StockRow {
   ma5: number | null; // 五日均價
   ma20: number | null; // 月均線 (20MA)
   ma20_up: boolean; // 月均線是否上彎
-  reasons: string[]; // 入選理由 (中文短句，可直接當 tag 顯示)
 }
 
 export interface ScreenResponse {

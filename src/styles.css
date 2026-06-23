@@ -295,21 +295,6 @@ body {
   color: var(--flat);
 }
 
-/* 理由 tags */
-.reasons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-.reason-tag {
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: #f1f5f9;
-  color: #475569;
-  border: 1px solid #e2e8f0;
-  white-space: nowrap;
-}
 .dash {
   color: var(--text-muted);
 }
@@ -504,16 +489,6 @@ body {
     align-items: baseline;
     gap: 6px;
   }
-  /* 入選理由：標籤在上、tag 換行在下，避免擠壓 */
-  .stock-table tbody td[data-label="入選理由"] {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-  }
-  .reasons {
-    width: 100%;
-  }
-
   .table-note {
     border-top: none;
     padding: 4px 2px 0;
