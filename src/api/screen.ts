@@ -34,8 +34,6 @@ export class NotReadyError extends Error {
 export interface ScreenParams {
   /** 只取前 N 名，0 = 全部 */
   top?: number;
-  /** 強度分下限過濾 */
-  minScore?: number;
 }
 
 /**
@@ -49,7 +47,6 @@ export async function fetchScreen(
 ): Promise<ScreenResponse> {
   const q = new URLSearchParams();
   if (params.top != null) q.set("top", String(params.top));
-  if (params.minScore != null) q.set("min_score", String(params.minScore));
 
   const res = await fetch(`${BASE}/api/screen?${q.toString()}`, { signal });
   if (res.status === 503) throw new NotReadyError();

@@ -6,7 +6,7 @@ export function Header() {
       <div className="app-header__title">
         <h1>台股盤中起漲篩選</h1>
         <p className="app-header__subtitle">
-          即時顯示通過 6 項硬條件的起漲個股，依強度分排序
+          即時顯示通過 6 項硬條件的起漲個股
         </p>
       </div>
       <p className="disclaimer" role="note">

@@ -12,7 +12,6 @@ export interface ScreenState {
 
 export interface UseScreenOptions {
   top?: number;
-  minScore?: number;
   /** 輪詢間隔，預設 30s */
   intervalMs?: number;
 }
@@ -25,7 +24,7 @@ export interface UseScreenOptions {
  * - 卸載 / 參數變更時 AbortController 取消在途請求並清除計時器
  */
 export function useScreen(opts: UseScreenOptions = {}): ScreenState {
-  const { top, minScore, intervalMs = 30_000 } = opts;
+  const { top, intervalMs = 30_000 } = opts;
   const [state, setState] = useState<ScreenState>({
     data: null,
     loading: true,
@@ -40,7 +39,7 @@ export function useScreen(opts: UseScreenOptions = {}): ScreenState {
 
     async function tick() {
       try {
-        const data = await fetchScreen({ top, minScore }, ac.signal);
+        const data = await fetchScreen({ top }, ac.signal);
         if (!alive) return;
         setState({ data, loading: false, notReady: false, error: null });
       } catch (e) {
@@ -66,7 +65,7 @@ export function useScreen(opts: UseScreenOptions = {}): ScreenState {
       ac.abort();
       if (timer.current) clearInterval(timer.current);
     };
-  }, [top, minScore, intervalMs]);
+  }, [top, intervalMs]);
 
   return state;
 }

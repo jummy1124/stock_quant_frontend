@@ -42,7 +42,6 @@ export interface StockRow {
 
 /** 起漲個股 (/api/screen 的 results 元素)，在 StockRow 上多了篩選明細 */
 export interface BreakoutRow extends StockRow {
-  score: number; // 起漲強度分 0~100，僅供排序，非投資評級
   prev_high: number | null; // 昨日最高 (條件2 突破基準)
   vol_ratio: number | null; // 當日量 / 昨量
   ma5: number | null; // 五日均價

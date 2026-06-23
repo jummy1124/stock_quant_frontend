@@ -295,18 +295,6 @@ body {
   color: var(--flat);
 }
 
-.score-badge {
-  display: inline-block;
-  min-width: 42px;
-  text-align: center;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background: #eef2ff;
-  color: var(--accent);
-}
-
 /* 理由 tags */
 .reasons {
   display: flex;

@@ -11,7 +11,7 @@ import {
 } from "../utils/format";
 import { Reasons } from "./Reasons";
 
-type SortKey = "score" | "change_pct" | "vol_ratio" | "close" | "lots";
+type SortKey = "change_pct" | "vol_ratio" | "close" | "lots";
 type SortDir = "asc" | "desc";
 
 const COLUMNS: { key: SortKey | null; label: string; sortable: boolean }[] = [
@@ -21,7 +21,6 @@ const COLUMNS: { key: SortKey | null; label: string; sortable: boolean }[] = [
   { key: "change_pct", label: "漲跌", sortable: true },
   { key: "lots", label: "量(張)", sortable: true },
   { key: "vol_ratio", label: "量比", sortable: true },
-  { key: "score", label: "強度分", sortable: true },
   { key: null, label: "入選理由", sortable: false },
 ];
 
@@ -38,7 +37,7 @@ export function StockTable({
   /** 點選某列時呼叫（開啟歷史走勢 + 紀錄面板） */
   onSelect?: (row: BreakoutRow) => void;
 }) {
-  // 預設 null：照後端原順序 (已依 score 由高到低排好)
+  // 預設 null：照後端原順序 (依評估順序)
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
@@ -126,11 +125,6 @@ export function StockTable({
                 </td>
                 <td className="num" data-label="量(張)">{fmtLots(r.lots)}</td>
                 <td className="num" data-label="量比">{fmtRatio(r.vol_ratio)}</td>
-                <td className="num" data-label="強度分">
-                  <span className="score-badge" title="僅供排序，非投資評級">
-                    {fmtNum(r.score, 1)}
-                  </span>
-                </td>
                 <td data-label="入選理由">
                   <Reasons reasons={r.reasons} />
                 </td>
@@ -141,7 +135,7 @@ export function StockTable({
       </table>
       <p className="table-note">
         點任一列查看<strong>歷史K線 + 我的紀錄</strong>。
-        強度分由「量增幅度 + 突破幅度 + 月線斜率」綜合，<strong>僅供排序</strong>，非投資評級。
+        清單為通過 6 項硬條件的起漲個股，<strong>僅供資訊參考</strong>，非投資建議。
       </p>
     </div>
   );

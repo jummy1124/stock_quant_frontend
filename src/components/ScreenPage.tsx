@@ -11,12 +11,10 @@ import { EmptyState, LoadingState, NotReadyState } from "./States";
 
 export function ScreenPage() {
   const [top, setTop] = useState(0); // 0 = 全部
-  const [minScore, setMinScore] = useState(0);
   const [selected, setSelected] = useState<BreakoutRow | null>(null);
 
   const { data, loading, notReady, error } = useScreen({
     top: top || undefined,
-    minScore: minScore || undefined,
     intervalMs: 30_000,
   });
 
@@ -27,12 +25,7 @@ export function ScreenPage() {
     <div className="screen-page">
       <Header />
       <StatusBar meta={data?.meta ?? null} notReady={notReady} error={error} />
-      <Controls
-        top={top}
-        minScore={minScore}
-        onTopChange={setTop}
-        onMinScoreChange={setMinScore}
-      />
+      <Controls top={top} onTopChange={setTop} />
 
       <main className="screen-page__body">
         {loading && !hasData ? (

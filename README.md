@@ -1,6 +1,6 @@
 # 台股盤中起漲篩選 — 前端
 
-即時顯示台股盤中「起漲」篩選結果（通過 6 項硬條件、依強度分排序）。
+即時顯示台股盤中「起漲」篩選結果（通過 6 項硬條件）。
 技術棧：**React + TypeScript + Vite**，純 CSS。透過輪詢取後端 `GET /api/screen`。
 
 **點選任一檔個股**會彈出該檔近 6 個月歷史走勢圖（K 棒 + 成交量 + MA5/20/60），
@@ -130,7 +130,7 @@ src/
     ScreenPage.tsx       # 主頁面組裝
     Header.tsx           # 標題 + 免責聲明
     StatusBar.tsx        # 資料源徽章 / 新鮮度 / 統計 / warning / error
-    Controls.tsx         # top 下拉 + min_score 滑桿
+    Controls.tsx         # top 下拉
     StockTable.tsx       # 主清單 (可點欄位排序)
     Reasons.tsx          # reasons → tag
     States.tsx           # 載入中 / 資料準備中(503) / 空清單
@@ -155,4 +155,4 @@ src/
 - `age_seconds` 轉「N 秒/分鐘前更新」；> 180 秒標記「資料可能延遲」。
 - `source`：`live` →「盤中即時」綠燈、`eod` →「最後交易日收盤」灰燈。
 - 量以 `lots`（張）顯示；`null` 一律顯示 `—`。
-- `score` 僅供排序，非投資評級（UI 已加註明）。
+- 清單為通過 6 項硬條件的起漲個股，僅供資訊參考，非投資建議（UI 已加註明）。
