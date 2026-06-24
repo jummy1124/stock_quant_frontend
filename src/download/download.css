@@ -1,0 +1,109 @@
+/* src/download/download.css — self-contained styles for the download page. */
+:root {
+  color-scheme: light dark;
+  --dl-bg: #f6f7f9;
+  --dl-card: #ffffff;
+  --dl-border: #e3e6ea;
+  --dl-text: #1d2329;
+  --dl-muted: #6b7480;
+  --dl-accent: #c0392b;
+  --dl-accent-ink: #ffffff;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--dl-bg);
+  color: var(--dl-text);
+  font-family: system-ui, -apple-system, "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+  line-height: 1.5;
+}
+
+.dl-wrap {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.dl-header h1 {
+  margin: 0 0 4px;
+  font-size: 1.5rem;
+}
+.dl-sub { margin: 0; color: var(--dl-muted); font-size: 0.9rem; }
+
+.dl-card {
+  background: var(--dl-card);
+  border: 1px solid var(--dl-border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 20px;
+}
+.dl-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.dl-card-head h2 { margin: 0; font-size: 1.1rem; }
+
+.dl-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+.dl-table th, .dl-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--dl-border);
+}
+.dl-table th { color: var(--dl-muted); font-weight: 600; }
+.dl-date { font-variant-numeric: tabular-nums; }
+
+.dl-btn {
+  display: inline-block;
+  border: 1px solid var(--dl-accent);
+  background: var(--dl-accent);
+  color: var(--dl-accent-ink);
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+.dl-btn:hover { opacity: 0.88; }
+.dl-btn:disabled { opacity: 0.5; cursor: default; }
+.dl-btn-sm { padding: 4px 10px; font-size: 0.82rem; }
+.dl-btn-ghost {
+  background: transparent;
+  color: var(--dl-accent);
+}
+
+.dl-muted { color: var(--dl-muted); }
+.dl-hint { color: var(--dl-muted); font-size: 0.82rem; margin: 10px 0 0; }
+.dl-error { color: var(--dl-accent); font-size: 0.88rem; margin: 8px 0 0; }
+
+.dl-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+.dl-login { display: flex; flex-direction: column; gap: 10px; max-width: 320px; }
+.dl-login label { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; color: var(--dl-muted); }
+.dl-login input {
+  padding: 8px 10px;
+  border: 1px solid var(--dl-border);
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background: var(--dl-card);
+  color: var(--dl-text);
+}
+.dl-records { display: flex; flex-direction: column; gap: 10px; }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --dl-bg: #15181c;
+    --dl-card: #1e2227;
+    --dl-border: #2c3138;
+    --dl-text: #e6e9ec;
+    --dl-muted: #97a0ab;
+  }
+}

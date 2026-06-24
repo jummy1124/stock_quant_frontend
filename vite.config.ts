@@ -1,9 +1,22 @@
+import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  // Multi-page build: the main screening SPA (index.html) and the standalone
+  // download page (download.html) are independent entries. The download page
+  // only depends on src/download/* + the /downloadapi backend contract, so it
+  // can later be split into its own project with no changes to the main app.
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, "index.html"),
+        download: resolve(__dirname, "download.html"),
+      },
+    },
+  },
   server: {
     port: 5173,
     host: true,
@@ -23,6 +36,11 @@ export default defineConfig({
         changeOrigin: true,
       },
       "/userapi": {
+        target: process.env.USERDATA_URL ?? "http://localhost:8100",
+        changeOrigin: true,
+      },
+      // 下載頁 API（篩選快照 / 我的紀錄 .xlsx），與 /userapi 同一個 userdata 後端。
+      "/downloadapi": {
         target: process.env.USERDATA_URL ?? "http://localhost:8100",
         changeOrigin: true,
       },
