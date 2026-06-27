@@ -26,11 +26,42 @@ body {
   padding: 24px 16px 48px;
 }
 
+.dl-header__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
 .dl-header h1 {
   margin: 0 0 4px;
   font-size: 1.5rem;
 }
 .dl-sub { margin: 0; color: var(--dl-muted); font-size: 0.9rem; }
+
+/* 語言切換（繁中 / EN） */
+.lang-switch {
+  display: inline-flex;
+  border: 1px solid var(--dl-border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--dl-card);
+  flex: none;
+}
+.lang-switch__btn {
+  border: none;
+  background: transparent;
+  color: var(--dl-muted);
+  padding: 4px 10px;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.lang-switch__btn + .lang-switch__btn { border-left: 1px solid var(--dl-border); }
+.lang-switch__btn:hover { color: var(--dl-accent); }
+.lang-switch__btn.is-active {
+  background: var(--dl-accent);
+  color: var(--dl-accent-ink);
+  font-weight: 600;
+}
 
 .dl-card {
   background: var(--dl-card);

@@ -9,17 +9,18 @@ import {
   fmtPct,
   fmtRatio,
 } from "../utils/format";
+import { useT } from "../i18n";
 
 type SortKey = "change_pct" | "vol_ratio" | "close" | "lots";
 type SortDir = "asc" | "desc";
 
-const COLUMNS: { key: SortKey | null; label: string; sortable: boolean }[] = [
-  { key: null, label: "代號 / 名稱", sortable: false },
-  { key: null, label: "市場", sortable: false },
-  { key: "close", label: "現價", sortable: true },
-  { key: "change_pct", label: "漲跌", sortable: true },
-  { key: "lots", label: "量(張)", sortable: true },
-  { key: "vol_ratio", label: "量比", sortable: true },
+const COLUMNS: { key: SortKey | null; labelKey: string; sortable: boolean }[] = [
+  { key: null, labelKey: "th.symbol", sortable: false },
+  { key: null, labelKey: "th.market", sortable: false },
+  { key: "close", labelKey: "th.price", sortable: true },
+  { key: "change_pct", labelKey: "th.change", sortable: true },
+  { key: "lots", labelKey: "th.lots", sortable: true },
+  { key: "vol_ratio", labelKey: "th.volRatio", sortable: true },
 ];
 
 function sortVal(row: BreakoutRow, key: SortKey): number {
@@ -35,6 +36,7 @@ export function StockTable({
   /** 點選某列時呼叫（開啟歷史走勢 + 紀錄面板） */
   onSelect?: (row: BreakoutRow) => void;
 }) {
+  const t = useT();
   // 預設 null：照後端原順序 (依評估順序)
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -81,7 +83,7 @@ export function StockTable({
                     : undefined
                 }
               >
-                {c.label}
+                {t(c.labelKey)}
                 {sortIndicator(c.key)}
               </th>
             ))}
@@ -108,29 +110,32 @@ export function StockTable({
                 }
                 tabIndex={clickable ? 0 : undefined}
                 role={clickable ? "button" : undefined}
-                title={clickable ? "查看歷史K線與紀錄" : undefined}
+                title={clickable ? t("table.viewHistory") : undefined}
               >
-                <td className="cell-symbol" data-label="代號 / 名稱">
+                <td className="cell-symbol" data-label={t("th.symbol")}>
                   <span className="cell-symbol__code">{r.symbol}</span>
                   <span className="cell-symbol__name">{r.name || "—"}</span>
                   {clickable && <span className="cell-symbol__chart" aria-hidden="true">📈</span>}
                 </td>
-                <td className="cell-market" data-label="市場">{r.market || "—"}</td>
-                <td className="num" data-label="現價">{fmtNum(r.close)}</td>
-                <td className={`num cell-change ${cls}`} data-label="漲跌">
+                <td className="cell-market" data-label={t("th.market")}>{r.market || "—"}</td>
+                <td className="num" data-label={t("th.price")}>{fmtNum(r.close)}</td>
+                <td className={`num cell-change ${cls}`} data-label={t("th.change")}>
                   <span>{fmtChange(r.change)}</span>
                   <span className="cell-change__pct">{fmtPct(r.change_pct)}</span>
                 </td>
-                <td className="num" data-label="量(張)">{fmtLots(r.lots)}</td>
-                <td className="num" data-label="量比">{fmtRatio(r.vol_ratio)}</td>
+                <td className="num" data-label={t("th.lots")}>{fmtLots(r.lots)}</td>
+                <td className="num" data-label={t("th.volRatio")}>{fmtRatio(r.vol_ratio)}</td>
               </tr>
             );
           })}
         </tbody>
       </table>
       <p className="table-note">
-        點任一列查看<strong>歷史K線 + 我的紀錄</strong>。
-        清單為通過 6 項硬條件的起漲個股，<strong>僅供資訊參考</strong>，非投資建議。
+        {t("table.notePre")}
+        <strong>{t("table.noteStrong")}</strong>
+        {t("table.notePost")}
+        <strong>{t("table.noteStrong2")}</strong>
+        {t("table.notePost2")}
       </p>
     </div>
   );

@@ -10,6 +10,7 @@ import { Controls } from "./Controls";
 import { StockTable } from "./StockTable";
 import { StockDetailModal } from "./StockDetailModal";
 import { EmptyState, LoadingState, NotReadyState } from "./States";
+import { useT } from "../i18n";
 
 const LS_SETTINGS = "screen_settings_v1";
 
@@ -29,6 +30,7 @@ const sameSettings = (a: ScreenSettings, b: ScreenSettings) =>
   JSON.stringify(a) === JSON.stringify(b);
 
 export function ScreenPage() {
+  const t = useT();
   const [top, setTop] = useState(0); // 0 = 全部
   const [selected, setSelected] = useState<BreakoutRow | null>(null);
   const [settings, setSettings] = useState<ScreenSettings>(loadSettings);
@@ -93,9 +95,7 @@ export function ScreenPage() {
         <StockDetailModal row={selected} onClose={() => setSelected(null)} />
       )}
 
-      <footer className="app-footer">
-        ⚠️ 篩選結果為機率性資訊參考，非投資建議。資料源依交易時間自動切換（盤中即時 / 收盤）。
-      </footer>
+      <footer className="app-footer">{t("screen.footer")}</footer>
     </div>
   );
 }

@@ -1,9 +1,11 @@
 // src/components/auth/LoginForm.tsx
 import { useState, type FormEvent } from "react";
 import { useAuth } from "../../auth/AuthContext";
+import { useT } from "../../i18n";
 
 export function LoginForm({ onSwitch }: { onSwitch: () => void }) {
   const { login } = useAuth();
+  const t = useT();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
@@ -17,7 +19,7 @@ export function LoginForm({ onSwitch }: { onSwitch: () => void }) {
     try {
       await login(email.trim(), password);
     } catch (e2) {
-      setErr((e2 as Error).message || "登入失敗");
+      setErr((e2 as Error).message || t("auth.loginFailed"));
     } finally {
       setPending(false);
     }
@@ -25,7 +27,7 @@ export function LoginForm({ onSwitch }: { onSwitch: () => void }) {
 
   return (
     <form className="auth-form" onSubmit={submit}>
-      <h2 className="auth-form__title">登入</h2>
+      <h2 className="auth-form__title">{t("auth.login")}</h2>
 
       <label className="auth-field">
         <span>Email</span>
@@ -40,7 +42,7 @@ export function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       </label>
 
       <label className="auth-field">
-        <span>密碼</span>
+        <span>{t("auth.password")}</span>
         <input
           type="password"
           autoComplete="current-password"
@@ -54,13 +56,13 @@ export function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       {err && <p className="auth-error" role="alert">{err}</p>}
 
       <button className="auth-submit" type="submit" disabled={pending}>
-        {pending ? "登入中…" : "登入"}
+        {pending ? t("auth.loggingIn") : t("auth.login")}
       </button>
 
       <p className="auth-switch">
-        還沒有帳號？
+        {t("auth.noAccount")}
         <button type="button" className="auth-link" onClick={onSwitch}>
-          註冊
+          {t("auth.register")}
         </button>
       </p>
     </form>

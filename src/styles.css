@@ -1128,6 +1128,42 @@ body {
   border-color: var(--text-muted);
 }
 
+/* 頂部右側：語言切換 + 使用者選單 */
+.app-topbar__right {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 語言切換（繁中 / EN） */
+.lang-switch {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--surface);
+}
+.lang-switch__btn {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 4px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  line-height: 1.4;
+}
+.lang-switch__btn + .lang-switch__btn {
+  border-left: 1px solid var(--border);
+}
+.lang-switch__btn:hover {
+  color: var(--text);
+}
+.lang-switch__btn.is-active {
+  background: var(--accent, #2563eb);
+  color: #fff;
+  font-weight: 600;
+}
+
 /* ============================================================
    登入 / 註冊
    ============================================================ */

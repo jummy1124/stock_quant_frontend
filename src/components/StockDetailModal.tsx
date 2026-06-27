@@ -8,6 +8,7 @@ import { fetchHistory, fetchQuote } from "../api/history";
 import { fmtNum, fmtPct, changeClass } from "../utils/format";
 import { StockChart } from "./StockChart";
 import { StockRecordPanel } from "./StockRecordPanel";
+import { useI18n, type Locale } from "../i18n";
 
 const POLL_MS = 30_000;
 
@@ -33,11 +34,11 @@ function mergeToday(candles: Candle[], live: LiveCandle | null): Candle[] {
   return arr;
 }
 
-function fmtClockTime(iso: string | null | undefined): string {
+function fmtClockTime(iso: string | null | undefined, locale: Locale): string {
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleTimeString("zh-TW", { hour12: false });
+  return d.toLocaleTimeString(locale === "en" ? "en-US" : "zh-TW", { hour12: false });
 }
 
 export function StockDetailModal({
@@ -47,6 +48,7 @@ export function StockDetailModal({
   row: BreakoutRow;
   onClose: () => void;
 }) {
+  const { t, locale } = useI18n();
   const [data, setData] = useState<HistoryResponse | null>(null);
   const [quote, setQuote] = useState<QuoteResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,7 +72,7 @@ export function StockDetailModal({
       })
       .catch((e) => {
         if (ac.signal.aborted) return;
-        setError((e as Error).message || "載入失敗");
+        setError((e as Error).message || t("records.loadFailed"));
         setLoading(false);
       });
     return () => ac.abort();
@@ -135,7 +137,7 @@ export function StockDetailModal({
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-label={`${row.symbol} ${row.name} 歷史走勢與紀錄`}
+        aria-label={t("modal.aria", { symbol: row.symbol, name: row.name })}
       >
         <header className="modal__head">
           <div className="modal__title">
@@ -147,12 +149,12 @@ export function StockDetailModal({
             </span>
             {quote && quote.close != null && (
               <span className={`modal__live ${quote.source === "live" ? "is-live" : ""}`}>
-                {quote.source === "live" ? "盤中即時" : "收盤"}
-                {quote.as_of ? ` · ${fmtClockTime(quote.as_of)}` : ""}
+                {quote.source === "live" ? t("modal.liveTag") : t("modal.eodTag")}
+                {quote.as_of ? ` · ${fmtClockTime(quote.as_of, locale)}` : ""}
               </span>
             )}
           </div>
-          <button className="modal__close" onClick={onClose} aria-label="關閉">
+          <button className="modal__close" onClick={onClose} aria-label={t("common.close")}>
             ×
           </button>
         </header>
@@ -161,11 +163,12 @@ export function StockDetailModal({
           <span className="lg lg--ma5">MA5</span>
           <span className="lg lg--ma20">MA20</span>
           <span className="lg lg--ma60">MA60</span>
-          <span className="lg lg--vol">成交量(張)</span>
+          <span className="lg lg--vol">{t("chart.volume")}</span>
           {data && (
             <span className="modal__meta">
-              {data.count} 根日K · 近 {data.months} 個月{data.cached ? " · 快取" : ""}
-              {data.intraday ? " · 含今日盤中" : ""}
+              {t("modal.meta", { count: data.count, months: data.months })}
+              {data.cached ? t("modal.cached") : ""}
+              {data.intraday ? t("modal.intraday") : ""}
             </span>
           )}
         </div>
@@ -173,22 +176,22 @@ export function StockDetailModal({
         <div className="modal__body">
           <div className="modal__chart">
             {loading ? (
-              <div className="modal__state">載入歷史資料中…</div>
+              <div className="modal__state">{t("modal.loadingHistory")}</div>
             ) : error ? (
-              <div className="modal__state modal__state--err">歷史資料載入失敗：{error}</div>
+              <div className="modal__state modal__state--err">
+                {t("modal.historyFailed", { msg: error })}
+              </div>
             ) : candles.length > 0 ? (
               <StockChart candles={candles} currentPrice={livePrice} />
             ) : (
-              <div className="modal__state">查無此檔歷史資料。</div>
+              <div className="modal__state">{t("modal.noHistory")}</div>
             )}
           </div>
 
           <StockRecordPanel row={row} />
         </div>
 
-        <footer className="modal__foot">
-          ⚠️ 歷史資訊僅供參考，非投資建議。紅K收漲 / 綠K收跌（台股慣例）。
-        </footer>
+        <footer className="modal__foot">{t("modal.footer")}</footer>
       </div>
     </div>
   );

@@ -3,14 +3,16 @@
 import { useState } from "react";
 import { LoginForm } from "./LoginForm";
 import { RegisterForm } from "./RegisterForm";
+import { useT } from "../../i18n";
 
 export function AuthPanel() {
   const [mode, setMode] = useState<"login" | "register">("login");
+  const t = useT();
 
   return (
     <div className="auth-panel">
       <div className="auth-card">
-        <p className="auth-card__lead">登入後即可保存你的個股紀錄（目標價 / 成本價），跨裝置同步。</p>
+        <p className="auth-card__lead">{t("auth.lead")}</p>
         {mode === "login" ? (
           <LoginForm onSwitch={() => setMode("register")} />
         ) : (

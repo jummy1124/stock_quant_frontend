@@ -16,6 +16,8 @@ import {
   type SessionName,
   type SnapshotMeta,
 } from "./downloadApi";
+import { useI18n } from "../i18n";
+import { LanguageSwitcher } from "../components/LanguageSwitcher";
 
 interface DayRow {
   date: string;
@@ -39,15 +41,17 @@ function SessionCell({ snap, date, session }: {
   date: string;
   session: SessionName;
 }) {
+  const { t } = useI18n();
   if (!snap) return <span className="dl-muted">—</span>;
   return (
     <a className="dl-btn dl-btn-sm" href={snapshotXlsxUrl(date, session)}>
-      下載 ({snap.item_count})
+      {t("dl.download", { count: snap.item_count })}
     </a>
   );
 }
 
 export default function DownloadApp() {
+  const { t } = useI18n();
   const [snaps, setSnaps] = useState<SnapshotMeta[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -77,6 +81,10 @@ export default function DownloadApp() {
     void currentUser().then(setUser).catch(() => setUser(null));
   }, []);
 
+  useEffect(() => {
+    document.title = t("dl.docTitle");
+  }, [t]);
+
   const days = useMemo(() => groupByDate(snaps ?? []), [snaps]);
 
   async function onLogin(e: FormEvent) {
@@ -104,7 +112,7 @@ export default function DownloadApp() {
     setRecMsg(null);
     try {
       await downloadRecordsXlsx();
-      setRecMsg("已開始下載 my_records.xlsx");
+      setRecMsg(t("dl.downloadStarted"));
     } catch (err) {
       setRecMsg((err as Error).message);
     } finally {
@@ -115,33 +123,34 @@ export default function DownloadApp() {
   return (
     <div className="dl-wrap">
       <header className="dl-header">
-        <h1>台股篩選資料下載</h1>
-        <p className="dl-sub">
-          下載每日篩選結果與自己的個股紀錄。篩選結果為資訊參考，非投資建議。
-        </p>
+        <div className="dl-header__bar">
+          <h1>{t("dl.title")}</h1>
+          <LanguageSwitcher />
+        </div>
+        <p className="dl-sub">{t("dl.sub")}</p>
       </header>
 
       {/* ---- 篩選快照 (公開) ---- */}
       <section className="dl-card">
         <div className="dl-card-head">
-          <h2>每日篩選快照</h2>
+          <h2>{t("dl.snapshotsTitle")}</h2>
           <button className="dl-btn dl-btn-ghost" onClick={refreshSnapshots} disabled={loading}>
-            {loading ? "載入中…" : "重新整理"}
+            {loading ? t("common.loading") : t("dl.refresh")}
           </button>
         </div>
 
-        {error && <p className="dl-error">載入失敗：{error}</p>}
+        {error && <p className="dl-error">{t("dl.loadFailed", { msg: error })}</p>}
         {!error && !loading && days.length === 0 && (
-          <p className="dl-muted">目前尚無任何篩選快照。</p>
+          <p className="dl-muted">{t("dl.noSnapshots")}</p>
         )}
 
         {days.length > 0 && (
           <table className="dl-table">
             <thead>
               <tr>
-                <th>交易日</th>
-                <th>盤中 13:00</th>
-                <th>收盤後</th>
+                <th>{t("dl.th.date")}</th>
+                <th>{t("dl.th.intraday")}</th>
+                <th>{t("dl.th.eod")}</th>
               </tr>
             </thead>
             <tbody>
@@ -155,31 +164,31 @@ export default function DownloadApp() {
             </tbody>
           </table>
         )}
-        <p className="dl-hint">「下載」旁的數字為當次篩出的起漲個股檔數。檔案為 Excel (.xlsx)。</p>
+        <p className="dl-hint">{t("dl.snapshotHint")}</p>
       </section>
 
       {/* ---- 我的紀錄 (需登入) ---- */}
       <section className="dl-card">
         <div className="dl-card-head">
-          <h2>我的個股紀錄</h2>
+          <h2>{t("dl.recordsTitle")}</h2>
         </div>
 
         {user ? (
           <div className="dl-records">
             <p className="dl-muted">
-              已登入：<strong>{user.displayName || user.email}</strong>
+              {t("dl.loggedInAs")}<strong>{user.displayName || user.email}</strong>
             </p>
             <div className="dl-row">
               <button className="dl-btn" onClick={onDownloadRecords} disabled={recBusy}>
-                {recBusy ? "下載中…" : "下載我的紀錄 (.xlsx)"}
+                {recBusy ? t("dl.downloading") : t("dl.downloadRecords")}
               </button>
-              <button className="dl-btn dl-btn-ghost" onClick={onLogout}>登出</button>
+              <button className="dl-btn dl-btn-ghost" onClick={onLogout}>{t("dl.logout")}</button>
             </div>
             {recMsg && <p className="dl-hint">{recMsg}</p>}
           </div>
         ) : (
           <form className="dl-login" onSubmit={onLogin}>
-            <p className="dl-muted">下載個人紀錄需先登入。</p>
+            <p className="dl-muted">{t("dl.loginRequired")}</p>
             <label>
               Email
               <input
@@ -191,7 +200,7 @@ export default function DownloadApp() {
               />
             </label>
             <label>
-              密碼
+              {t("dl.password")}
               <input
                 type="password"
                 value={password}
@@ -202,7 +211,7 @@ export default function DownloadApp() {
             </label>
             {authError && <p className="dl-error">{authError}</p>}
             <button className="dl-btn" type="submit" disabled={authBusy}>
-              {authBusy ? "登入中…" : "登入"}
+              {authBusy ? t("dl.loggingIn") : t("dl.login")}
             </button>
           </form>
         )}

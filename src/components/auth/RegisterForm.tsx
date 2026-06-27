@@ -1,9 +1,11 @@
 // src/components/auth/RegisterForm.tsx
 import { useState, type FormEvent } from "react";
 import { useAuth } from "../../auth/AuthContext";
+import { useT } from "../../i18n";
 
 export function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
   const { register } = useAuth();
+  const t = useT();
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [password, setPassword] = useState("");
@@ -18,7 +20,7 @@ export function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
     try {
       await register(email.trim(), password, displayName.trim() || undefined);
     } catch (e2) {
-      setErr((e2 as Error).message || "註冊失敗");
+      setErr((e2 as Error).message || t("auth.registerFailed"));
     } finally {
       setPending(false);
     }
@@ -26,7 +28,7 @@ export function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
 
   return (
     <form className="auth-form" onSubmit={submit}>
-      <h2 className="auth-form__title">註冊</h2>
+      <h2 className="auth-form__title">{t("auth.register")}</h2>
 
       <label className="auth-field">
         <span>Email</span>
@@ -41,18 +43,18 @@ export function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
       </label>
 
       <label className="auth-field">
-        <span>顯示名稱（選填）</span>
+        <span>{t("auth.displayName")}</span>
         <input
           type="text"
           autoComplete="nickname"
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
-          placeholder="例如：阿明"
+          placeholder={t("auth.displayNamePlaceholder")}
         />
       </label>
 
       <label className="auth-field">
-        <span>密碼</span>
+        <span>{t("auth.password")}</span>
         <input
           type="password"
           autoComplete="new-password"
@@ -60,20 +62,20 @@ export function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
           onChange={(e) => setPassword(e.target.value)}
           required
           minLength={6}
-          placeholder="至少 6 碼"
+          placeholder={t("auth.passwordPlaceholder")}
         />
       </label>
 
       {err && <p className="auth-error" role="alert">{err}</p>}
 
       <button className="auth-submit" type="submit" disabled={pending}>
-        {pending ? "註冊中…" : "註冊"}
+        {pending ? t("auth.registering") : t("auth.register")}
       </button>
 
       <p className="auth-switch">
-        已經有帳號？
+        {t("auth.haveAccount")}
         <button type="button" className="auth-link" onClick={onSwitch}>
-          登入
+          {t("auth.login")}
         </button>
       </p>
     </form>

@@ -3,6 +3,7 @@
 import { useRecords } from "../records/RecordsContext";
 import { useToast } from "./ui/Toast";
 import { fmtNum, fmtPct, fmtDateTime } from "../utils/format";
+import { useT } from "../i18n";
 
 function signClass(v: number | null): string {
   if (v == null) return "";
@@ -11,20 +12,21 @@ function signClass(v: number | null): string {
 
 /** 載入中骨架列：取代純文字，降低版面跳動感 */
 function RecordsSkeleton() {
+  const t = useT();
   return (
-    <div className="table-wrap" aria-busy="true" aria-label="載入紀錄中">
+    <div className="table-wrap" aria-busy="true" aria-label={t("records.loadingAria")}>
       <table className="stock-table records-table">
         <thead>
           <tr>
-            <th>代號 / 名稱</th>
-            <th>市場</th>
-            <th>現價</th>
-            <th>成本價</th>
-            <th>目標價</th>
-            <th>報酬率</th>
-            <th>距目標</th>
-            <th>紀錄時間</th>
-            <th>操作</th>
+            <th>{t("th.symbol")}</th>
+            <th>{t("th.market")}</th>
+            <th>{t("th.price")}</th>
+            <th>{t("th.cost")}</th>
+            <th>{t("th.target")}</th>
+            <th>{t("th.return")}</th>
+            <th>{t("th.upside")}</th>
+            <th>{t("th.time")}</th>
+            <th>{t("th.action")}</th>
           </tr>
         </thead>
         <tbody>
@@ -46,14 +48,15 @@ function RecordsSkeleton() {
 export function RecordsPage() {
   const { records, remove, loading, error, reload } = useRecords();
   const toast = useToast();
+  const t = useT();
   const list = Object.values(records).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 
   async function handleRemove(marketCode: string, symbol: string) {
     try {
       await remove(marketCode, symbol);
-      toast.success("已移除");
+      toast.success(t("toast.removed"));
     } catch (e) {
-      toast.error((e as Error).message || "移除失敗");
+      toast.error((e as Error).message || t("toast.removeFailed"));
     }
   }
 
@@ -64,9 +67,9 @@ export function RecordsPage() {
   if (error) {
     return (
       <div className="records-empty">
-        <p className="records-empty__main records-empty__err">載入失敗</p>
+        <p className="records-empty__main records-empty__err">{t("records.loadFailed")}</p>
         <p className="records-empty__hint">{error}</p>
-        <button className="remove-btn" onClick={reload}>重新載入</button>
+        <button className="remove-btn" onClick={reload}>{t("common.reload")}</button>
       </div>
     );
   }
@@ -74,10 +77,8 @@ export function RecordsPage() {
   if (list.length === 0) {
     return (
       <div className="records-empty">
-        <p className="records-empty__main">還沒有任何紀錄</p>
-        <p className="records-empty__hint">
-          到「篩選結果」點任一檔個股，在彈窗的「我的紀錄」填入目標價／成本價並儲存，就會出現在這裡。
-        </p>
+        <p className="records-empty__main">{t("records.empty")}</p>
+        <p className="records-empty__hint">{t("records.emptyHint")}</p>
       </div>
     );
   }
@@ -87,15 +88,15 @@ export function RecordsPage() {
       <table className="stock-table records-table">
         <thead>
           <tr>
-            <th>代號 / 名稱</th>
-            <th>市場</th>
-            <th>現價</th>
-            <th>成本價</th>
-            <th>目標價</th>
-            <th>報酬率</th>
-            <th>距目標</th>
-            <th>紀錄時間</th>
-            <th>操作</th>
+            <th>{t("th.symbol")}</th>
+            <th>{t("th.market")}</th>
+            <th>{t("th.price")}</th>
+            <th>{t("th.cost")}</th>
+            <th>{t("th.target")}</th>
+            <th>{t("th.return")}</th>
+            <th>{t("th.upside")}</th>
+            <th>{t("th.time")}</th>
+            <th>{t("th.action")}</th>
           </tr>
         </thead>
         <tbody>
@@ -110,27 +111,27 @@ export function RecordsPage() {
                 : null;
             return (
               <tr key={`${r.marketCode}-${r.symbol}`}>
-                <td className="cell-symbol" data-label="代號 / 名稱">
+                <td className="cell-symbol" data-label={t("th.symbol")}>
                   <span className="cell-symbol__code">{r.symbol}</span>
                   <span className="cell-symbol__name">{r.name || "—"}</span>
                 </td>
-                <td className="cell-market" data-label="市場">{r.market || "—"}</td>
-                <td className="num" data-label="現價">{fmtNum(r.lastClose)}</td>
-                <td className="num" data-label="成本價">{fmtNum(r.costPrice)}</td>
-                <td className="num" data-label="目標價">{fmtNum(r.targetPrice)}</td>
-                <td className={`num ${signClass(ret)}`} data-label="報酬率">
+                <td className="cell-market" data-label={t("th.market")}>{r.market || "—"}</td>
+                <td className="num" data-label={t("th.price")}>{fmtNum(r.lastClose)}</td>
+                <td className="num" data-label={t("th.cost")}>{fmtNum(r.costPrice)}</td>
+                <td className="num" data-label={t("th.target")}>{fmtNum(r.targetPrice)}</td>
+                <td className={`num ${signClass(ret)}`} data-label={t("th.return")}>
                   {ret == null ? "—" : fmtPct(ret)}
                 </td>
-                <td className={`num ${signClass(upside)}`} data-label="距目標">
+                <td className={`num ${signClass(upside)}`} data-label={t("th.upside")}>
                   {upside == null ? "—" : fmtPct(upside)}
                 </td>
-                <td className="cell-time" data-label="紀錄時間">{fmtDateTime(r.updatedAt)}</td>
-                <td data-label="操作">
+                <td className="cell-time" data-label={t("th.time")}>{fmtDateTime(r.updatedAt)}</td>
+                <td data-label={t("th.action")}>
                   <button
                     className="remove-btn"
                     onClick={() => void handleRemove(r.marketCode, r.symbol)}
                   >
-                    移除
+                    {t("common.remove")}
                   </button>
                 </td>
               </tr>
@@ -139,8 +140,9 @@ export function RecordsPage() {
         </tbody>
       </table>
       <p className="table-note">
-        ＊ 多人版預備：此頁資料經 <code>/userapi/records</code> 取得（dev 由 MSW 模擬、localStorage 暫存）。
-        報酬率以「紀錄當下現價」對成本價試算。
+        {t("records.tableNotePre")}
+        <code>/userapi/records</code>
+        {t("records.tableNotePost")}
       </p>
     </div>
   );

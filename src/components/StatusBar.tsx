@@ -1,6 +1,7 @@
 // src/components/StatusBar.tsx
 import type { Meta } from "../types/screen";
 import { fmtAge, fmtClock, isStale } from "../utils/format";
+import { useI18n } from "../i18n";
 
 interface Props {
   meta: Meta | null;
@@ -9,17 +10,20 @@ interface Props {
 }
 
 function SourceBadge({ source }: { source: Meta["source"] }) {
+  const { t } = useI18n();
   if (source === "live") {
-    return <span className="badge badge--live">● 盤中即時</span>;
+    return <span className="badge badge--live">{t("status.live")}</span>;
   }
   if (source === "eod") {
-    return <span className="badge badge--eod">● 最後交易日收盤</span>;
+    return <span className="badge badge--eod">{t("status.eod")}</span>;
   }
-  return <span className="badge badge--unknown">● 資料源未知</span>;
+  return <span className="badge badge--unknown">{t("status.unknown")}</span>;
 }
 
 export function StatusBar({ meta, notReady, error }: Props) {
+  const { t, locale } = useI18n();
   const stale = isStale(meta?.age_seconds);
+  const nf = locale === "en" ? "en-US" : "zh-TW";
 
   return (
     <div className="statusbar">
@@ -27,38 +31,41 @@ export function StatusBar({ meta, notReady, error }: Props) {
         <SourceBadge source={meta?.source ?? null} />
 
         <span className={`statusbar__age${stale ? " statusbar__age--stale" : ""}`}>
-          {fmtAge(meta?.age_seconds)}
-          {meta?.generated_at ? ` (${fmtClock(meta.generated_at)})` : ""}
-          {stale ? " · 資料可能延遲" : ""}
+          {fmtAge(meta?.age_seconds, t)}
+          {meta?.generated_at ? ` (${fmtClock(meta.generated_at, locale)})` : ""}
+          {stale ? t("status.stale") : ""}
         </span>
 
         {meta && (
           <span className="statusbar__stats">
-            掃描 {meta.universe.toLocaleString("zh-TW")} 檔 · 可算{" "}
-            {meta.quotable.toLocaleString("zh-TW")} · 漲幅池 {meta.pool_size} · 入選{" "}
-            {meta.count}
+            {t("status.stats", {
+              universe: meta.universe.toLocaleString(nf),
+              quotable: meta.quotable.toLocaleString(nf),
+              pool: meta.pool_size,
+              count: meta.count,
+            })}
           </span>
         )}
       </div>
 
       {meta?.warning && (
         <div className="alert alert--warning" role="alert">
-          ⚠️ 報價限流：{meta.warning}
+          {t("status.warning", { msg: meta.warning })}
         </div>
       )}
       {meta?.last_error && (
         <div className="alert alert--error" role="alert">
-          後端錯誤：{meta.last_error}（顯示為上一份可用資料）
+          {t("status.lastError", { msg: meta.last_error })}
         </div>
       )}
       {error && (
         <div className="alert alert--offline" role="alert">
-          連線異常：{error}（下次輪詢將自動重試）
+          {t("status.connError", { msg: error })}
         </div>
       )}
       {notReady && (
         <div className="alert alert--info" role="status">
-          資料準備中…將自動更新
+          {t("status.notReadyAlert")}
         </div>
       )}
     </div>

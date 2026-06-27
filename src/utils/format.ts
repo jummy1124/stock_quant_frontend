@@ -1,5 +1,6 @@
 // src/utils/format.ts
 // 顯示用格式化工具，全部對 null 做防護，缺漏一律顯示 "—"。
+import type { Locale, TFunc } from "../i18n";
 
 export const DASH = "—";
 
@@ -44,15 +45,15 @@ export function changeClass(v: number | null | undefined): string {
   return v > 0 ? "up" : "down";
 }
 
-/** age_seconds → 相對時間「N 秒前 / N 分鐘前更新」 */
-export function fmtAge(sec: number | null | undefined): string {
-  if (sec == null || Number.isNaN(sec)) return "更新時間未知";
+/** age_seconds → 相對時間（語系字串由 t() 提供） */
+export function fmtAge(sec: number | null | undefined, t: TFunc): string {
+  if (sec == null || Number.isNaN(sec)) return t("age.unknown");
   const s = Math.max(0, Math.round(sec));
-  if (s < 60) return `${s} 秒前更新`;
+  if (s < 60) return t("age.seconds", { n: s });
   const m = Math.floor(s / 60);
-  if (m < 60) return `${m} 分鐘前更新`;
+  if (m < 60) return t("age.minutes", { n: m });
   const h = Math.floor(m / 60);
-  return `${h} 小時前更新`;
+  return t("age.hours", { n: h });
 }
 
 /** age_seconds 是否視為延遲 (> 180 秒) */
@@ -61,11 +62,11 @@ export function isStale(sec: number | null | undefined): boolean {
 }
 
 /** generated_at ISO → 本地時間字串 (HH:mm:ss) */
-export function fmtClock(iso: string | null | undefined): string {
+export function fmtClock(iso: string | null | undefined, locale: Locale = "zh-TW"): string {
   if (!iso) return DASH;
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleTimeString("zh-TW", { hour12: false });
+  return d.toLocaleTimeString(locale === "en" ? "en-US" : "zh-TW", { hour12: false });
 }
 
 /** ISO → 本地「YYYY-MM-DD HH:mm」，給紀錄時間用；null → "—" */

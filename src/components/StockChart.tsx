@@ -17,6 +17,7 @@ import {
   type Time,
 } from "lightweight-charts";
 import type { Candle } from "../types/history";
+import { useI18n } from "../i18n";
 
 const UP = "#e02e3d"; // 漲 = 紅
 const DOWN = "#18a058"; // 跌 = 綠
@@ -39,6 +40,8 @@ export function StockChart({
   candles: Candle[];
   currentPrice?: number | null;
 }) {
+  const { locale } = useI18n();
+  const chartLocale = locale === "en" ? "en-US" : "zh-TW";
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -70,7 +73,7 @@ export function StockChart({
         scaleMargins: { top: 0.08, bottom: 0.28 },
       },
       timeScale: { borderColor: "#e3e6ea", rightOffset: 4 },
-      localization: { locale: "zh-TW" },
+      localization: { locale: chartLocale },
     });
     chartRef.current = chart;
 
@@ -116,6 +119,11 @@ export function StockChart({
       didFitRef.current = false;
     };
   }, []);
+
+  // 語系切換時更新圖表本地化（日期 / 數字格式）
+  useEffect(() => {
+    chartRef.current?.applyOptions({ localization: { locale: chartLocale } });
+  }, [chartLocale]);
 
   // 資料更新（candles 變動時）
   useEffect(() => {

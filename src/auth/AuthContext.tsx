@@ -17,6 +17,7 @@ import type { AuthStatus, User } from "./types";
 import * as authApi from "../api/authApi";
 import { getAuthToken, onUnauthorized, setAuthToken } from "../api/userClient";
 import { useToast } from "../components/ui/Toast";
+import { useT } from "../i18n";
 
 interface AuthCtx {
   status: AuthStatus;
@@ -33,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>("loading");
   const [user, setUser] = useState<User | null>(null);
   const toast = useToast();
+  const t = useT();
 
   // 用 ref 保存最新 status，供 onUnauthorized handler 判斷是否需提示
   const statusRef = useRef<AuthStatus>(status);
@@ -70,10 +72,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const wasAuthed = statusRef.current === "authenticated";
       setUser(null);
       setStatus("anonymous");
-      if (wasAuthed) toast.error("登入已過期，請重新登入");
+      if (wasAuthed) toast.error(t("auth.expired"));
     });
     return off;
-  }, [toast]);
+  }, [toast, t]);
 
   const login = useCallback(async (email: string, password: string) => {
     const { token, user: u } = await authApi.login(email, password);
@@ -97,8 +99,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuthToken(null);
     setUser(null);
     setStatus("anonymous");
-    toast.info("已登出");
-  }, [toast]);
+    toast.info(t("toast.loggedOut"));
+  }, [toast, t]);
 
   const api = useMemo<AuthCtx>(
     () => ({

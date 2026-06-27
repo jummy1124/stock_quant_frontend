@@ -1,6 +1,7 @@
 // src/components/Controls.tsx
 import { useState } from "react";
 import type { ScreenSettings } from "../types/screen";
+import { useT } from "../i18n";
 
 interface Props {
   top: number; // 0 = 全部
@@ -13,13 +14,7 @@ interface Props {
   isDefault: boolean;
 }
 
-const TOP_OPTIONS = [
-  { value: 0, label: "全部" },
-  { value: 10, label: "前 10" },
-  { value: 20, label: "前 20" },
-  { value: 50, label: "前 50" },
-  { value: 100, label: "前 100" },
-];
+const TOP_VALUES = [0, 10, 20, 50, 100];
 
 /** 數字輸入欄 */
 function NumField(props: {
@@ -83,6 +78,7 @@ export function Controls({
   isDefault,
 }: Props) {
   const [open, setOpen] = useState(false);
+  const t = useT();
   const set = <K extends keyof ScreenSettings>(key: K, value: ScreenSettings[K]) =>
     onSettingsChange({ ...settings, [key]: value });
 
@@ -90,15 +86,15 @@ export function Controls({
     <div className="controls-wrap">
       <div className="controls">
         <label className="controls__field">
-          <span className="controls__label">顯示筆數</span>
+          <span className="controls__label">{t("controls.show")}</span>
           <select
             className="controls__select"
             value={top}
             onChange={(e) => onTopChange(Number(e.target.value))}
           >
-            {TOP_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
+            {TOP_VALUES.map((v) => (
+              <option key={v} value={v}>
+                {v === 0 ? t("controls.all") : t("controls.topN", { n: v })}
               </option>
             ))}
           </select>
@@ -110,8 +106,8 @@ export function Controls({
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
         >
-          篩選條件
-          {!isDefault && <span className="controls__badge">已調整</span>}
+          {t("controls.filters")}
+          {!isDefault && <span className="controls__badge">{t("controls.adjusted")}</span>}
           <span className="controls__chevron">{open ? "▲" : "▼"}</span>
         </button>
       </div>
@@ -119,18 +115,18 @@ export function Controls({
       {open && (
         <div className="settings">
           <section className="settings__group">
-            <h3 className="settings__group-title">漲幅池（第一層）</h3>
+            <h3 className="settings__group-title">{t("controls.group.pool")}</h3>
             <div className="settings__grid">
               <NumField
-                label="漲幅下限"
+                label={t("controls.field.minChange")}
                 hint="%"
                 value={settings.min_change}
                 step={0.5}
                 onChange={(v) => set("min_change", v)}
               />
               <ToggleField
-                label="排除已鎖漲停"
-                hint="收盤 ≤ 漲停前一檔"
+                label={t("controls.field.excludeLimitUp")}
+                hint={t("controls.hint.excludeLimitUp")}
                 checked={settings.exclude_limit_up}
                 onChange={(v) => set("exclude_limit_up", v)}
               />
@@ -138,40 +134,40 @@ export function Controls({
           </section>
 
           <section className="settings__group">
-            <h3 className="settings__group-title">起漲點 6 條件（第二層）</h3>
+            <h3 className="settings__group-title">{t("controls.group.breakout")}</h3>
             <div className="settings__grid">
               <NumField
-                label="量增倍數"
-                hint="當日量/昨量 ≥"
+                label={t("controls.field.volRatio")}
+                hint={t("controls.hint.volRatio")}
                 value={settings.vol_ratio}
                 min={0.1}
                 step={0.1}
                 onChange={(v) => set("vol_ratio", v)}
               />
               <NumField
-                label="短均線天數"
-                hint="預設 5MA"
+                label={t("controls.field.maShort")}
+                hint={t("controls.hint.maShort")}
                 value={settings.ma_short}
                 min={1}
                 onChange={(v) => set("ma_short", v)}
               />
               <NumField
-                label="月均線天數"
-                hint="預設 20MA"
+                label={t("controls.field.maMid")}
+                hint={t("controls.hint.maMid")}
                 value={settings.ma_mid}
                 min={1}
                 onChange={(v) => set("ma_mid", v)}
               />
               <NumField
-                label="月線上彎回看"
-                hint="今日 vs N 日前"
+                label={t("controls.field.maSlope")}
+                hint={t("controls.hint.maSlope")}
                 value={settings.ma_slope_lookback}
                 min={0}
                 onChange={(v) => set("ma_slope_lookback", v)}
               />
               <ToggleField
-                label="量能用全日預估"
-                hint="盤中早盤較公允"
+                label={t("controls.field.volProjection")}
+                hint={t("controls.hint.volProjection")}
                 checked={settings.vol_projection}
                 onChange={(v) => set("vol_projection", v)}
               />
@@ -179,16 +175,14 @@ export function Controls({
           </section>
 
           <div className="settings__actions">
-            <span className="settings__note">
-              紅K、突破昨高、昨日在短均線下為固定條件，不可調整。
-            </span>
+            <span className="settings__note">{t("controls.note")}</span>
             <button
               type="button"
               className="settings__reset"
               onClick={onReset}
               disabled={isDefault}
             >
-              恢復預設
+              {t("controls.reset")}
             </button>
           </div>
         </div>

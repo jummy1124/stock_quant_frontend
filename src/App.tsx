@@ -1,9 +1,11 @@
 // src/App.tsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { RecordsProvider, useRecords } from "./records/RecordsContext";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import { ToastProvider } from "./components/ui/Toast";
+import { I18nProvider, useI18n } from "./i18n";
 import { UserMenu } from "./components/auth/UserMenu";
+import { LanguageSwitcher } from "./components/LanguageSwitcher";
 import { AuthPanel } from "./components/auth/AuthPanel";
 import { ScreenPage } from "./components/ScreenPage";
 import { RecordsPage } from "./components/RecordsPage";
@@ -12,11 +14,12 @@ type Tab = "screen" | "records";
 
 function RecordsTab() {
   const { status } = useAuth();
+  const { t } = useI18n();
 
   if (status === "loading") {
     return (
       <div className="records-empty">
-        <p className="records-empty__main">載入中…</p>
+        <p className="records-empty__main">{t("common.loading")}</p>
       </div>
     );
   }
@@ -32,6 +35,11 @@ function Shell() {
   const [tab, setTab] = useState<Tab>("screen");
   const { count } = useRecords();
   const { isAuthenticated } = useAuth();
+  const { t } = useI18n();
+
+  useEffect(() => {
+    document.title = t("app.docTitle");
+  }, [t]);
 
   return (
     <div className="app-shell">
@@ -43,7 +51,7 @@ function Shell() {
             role="tab"
             aria-selected={tab === "screen"}
           >
-            篩選結果
+            {t("tab.screen")}
           </button>
           <button
             className={`tab ${tab === "records" ? "tab--active" : ""}`}
@@ -51,11 +59,14 @@ function Shell() {
             role="tab"
             aria-selected={tab === "records"}
           >
-            我的紀錄
+            {t("tab.records")}
             {isAuthenticated && count > 0 && <span className="tab__badge">{count}</span>}
           </button>
         </nav>
-        <UserMenu />
+        <div className="app-topbar__right">
+          <LanguageSwitcher />
+          <UserMenu />
+        </div>
       </div>
 
       {tab === "screen" ? (
@@ -64,15 +75,17 @@ function Shell() {
         <div className="screen-page">
           <header className="app-header">
             <div className="app-header__title">
-              <h1>我的紀錄</h1>
-              <p className="app-header__subtitle">已關注 / 已設定目標價的個股，登入後跨裝置同步保存</p>
+              <h1>{t("records.title")}</h1>
+              <p className="app-header__subtitle">{t("records.subtitle")}</p>
             </div>
           </header>
           <main className="screen-page__body">
             <RecordsTab />
           </main>
           <footer className="app-footer">
-            ＊ 紀錄經 <code>/userapi/records</code> 儲存於後端，以帳號隔離。
+            {t("records.footerPre")}
+            <code>/userapi/records</code>
+            {t("records.footerPost")}
           </footer>
         </div>
       )}
@@ -82,12 +95,14 @@ function Shell() {
 
 export default function App() {
   return (
-    <ToastProvider>
-      <AuthProvider>
-        <RecordsProvider>
-          <Shell />
-        </RecordsProvider>
-      </AuthProvider>
-    </ToastProvider>
+    <I18nProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <RecordsProvider>
+            <Shell />
+          </RecordsProvider>
+        </AuthProvider>
+      </ToastProvider>
+    </I18nProvider>
   );
 }
