@@ -37,7 +37,7 @@ const Ctx = createContext<RecordsCtx | null>(null);
 
 const keyOf = (marketCode: string, symbol: string) => `${marketCode}-${symbol}`;
 
-/** 預設用 HTTP 實作；測試可用 props 注入 InMemoryRecordsRepo */
+/** 預設用 HTTP 實作；可用 props 注入自訂 RecordsRepo 實作（例如測試用） */
 const defaultRepo: RecordsRepo = new HttpRecordsRepo();
 
 export function RecordsProvider({

@@ -1,9 +1,5 @@
 // src/api/screen.ts
-import type {
-  PoolResponse,
-  ScreenResponse,
-  ScreenSettings,
-} from "../types/screen";
+import type { ScreenResponse, ScreenSettings } from "../types/screen";
 
 // API base URL 解析優先序：
 //   1. 執行期注入 window.__APP_CONFIG__.API_BASE_URL (Docker entrypoint 產生 /config.js)
@@ -81,27 +77,6 @@ export async function fetchScreenDefaults(
   const res = await fetch(`${BASE}/api/screen-defaults`, { signal });
   if (!res.ok) throw new Error(`API ${res.status}`);
   return (await res.json()) as ScreenSettings;
-}
-
-/** 取得第一層漲幅池 (除錯/備用) */
-export async function fetchPool(
-  params: {
-    top?: number;
-    min_change?: number;
-    exclude_limit_up?: boolean;
-  } = {},
-  signal?: AbortSignal,
-): Promise<PoolResponse> {
-  const q = new URLSearchParams();
-  if (params.top != null) q.set("top", String(params.top));
-  if (params.min_change != null) q.set("min_change", String(params.min_change));
-  if (params.exclude_limit_up != null)
-    q.set("exclude_limit_up", String(params.exclude_limit_up));
-
-  const res = await fetch(`${BASE}/api/pool?${q.toString()}`, { signal });
-  if (res.status === 503) throw new NotReadyError();
-  if (!res.ok) throw new Error(`API ${res.status}`);
-  return (await res.json()) as PoolResponse;
 }
 
 export { BASE as API_BASE_URL };

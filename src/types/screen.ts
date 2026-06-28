@@ -23,7 +23,7 @@ export interface Meta {
   last_error: string | null;
 }
 
-/** 漲幅池個股 (/api/pool 的 results 元素，也是 BreakoutRow 的基底) */
+/** 個股基礎欄位，作為 BreakoutRow 的基底 */
 export interface StockRow {
   symbol: string; // 股票代號，例如 "2330"
   name: string; // 股票名稱，例如 "台積電" (可能為空字串)
@@ -52,18 +52,6 @@ export interface BreakoutRow extends StockRow {
 export interface ScreenResponse {
   meta: Meta;
   results: BreakoutRow[];
-}
-
-export interface PoolResponse {
-  meta: Meta;
-  results: StockRow[];
-}
-
-/** /health 回應 */
-export interface HealthResponse {
-  status: "ok";
-  ready: boolean;
-  has_snapshot: boolean;
 }
 
 /**
