@@ -57,8 +57,9 @@ function setToken(token: string | null): void {
 
 // ---- public: snapshot listing ----
 
-export async function listSnapshots(): Promise<SnapshotMeta[]> {
-  const res = await fetch(`${API_BASE}/downloadapi/snapshots`, {
+export async function listSnapshots(limit = 2000): Promise<SnapshotMeta[]> {
+  const qs = new URLSearchParams({ limit: String(limit) });
+  const res = await fetch(`${API_BASE}/downloadapi/snapshots?${qs.toString()}`, {
     headers: { Accept: "application/json" },
   });
   if (!res.ok) throw new Error(`載入快照清單失敗 (HTTP ${res.status})`);

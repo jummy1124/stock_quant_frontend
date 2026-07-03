@@ -19,35 +19,31 @@ import {
 import { useI18n } from "../i18n";
 import { LanguageSwitcher } from "../components/LanguageSwitcher";
 
-interface DayRow {
-  date: string;
-  intraday?: SnapshotMeta;
-  eod?: SnapshotMeta;
+interface Coverage {
+  min: string;
+  max: string;
+  days: number;
+  total: number;
 }
 
-function groupByDate(snaps: SnapshotMeta[]): DayRow[] {
-  const map = new Map<string, DayRow>();
+function computeCoverage(snaps: SnapshotMeta[]): Coverage | null {
+  if (snaps.length === 0) return null;
+  let min = snaps[0].trade_date;
+  let max = snaps[0].trade_date;
+  const dateSet = new Set<string>();
   for (const s of snaps) {
-    const row = map.get(s.trade_date) ?? { date: s.trade_date };
-    if (s.session === "intraday_1300") row.intraday = s;
-    else if (s.session === "eod") row.eod = s;
-    map.set(s.trade_date, row);
+    if (s.trade_date < min) min = s.trade_date;
+    if (s.trade_date > max) max = s.trade_date;
+    dateSet.add(s.trade_date);
   }
-  return [...map.values()].sort((a, b) => (a.date < b.date ? 1 : -1));
+  return { min, max, days: dateSet.size, total: snaps.length };
 }
 
-function SessionCell({ snap, date, session }: {
-  snap?: SnapshotMeta;
-  date: string;
-  session: SessionName;
-}) {
-  const { t } = useI18n();
-  if (!snap) return <span className="dl-muted">—</span>;
-  return (
-    <a className="dl-btn dl-btn-sm" href={snapshotXlsxUrl(date, session)}>
-      {t("dl.download", { count: snap.item_count })}
-    </a>
-  );
+function todayStr(): string {
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${mm}-${dd}`;
 }
 
 export default function DownloadApp() {
@@ -63,6 +59,10 @@ export default function DownloadApp() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [recBusy, setRecBusy] = useState(false);
   const [recMsg, setRecMsg] = useState<string | null>(null);
+
+  const [queryDate, setQueryDate] = useState(todayStr());
+  const [querySession, setQuerySession] = useState<SessionName>("eod");
+  const [queried, setQueried] = useState(false);
 
   async function refreshSnapshots() {
     setLoading(true);
@@ -85,7 +85,20 @@ export default function DownloadApp() {
     document.title = t("dl.docTitle");
   }, [t]);
 
-  const days = useMemo(() => groupByDate(snaps ?? []), [snaps]);
+  const coverage = useMemo(() => computeCoverage(snaps ?? []), [snaps]);
+
+  const snapMap = useMemo(() => {
+    const map = new Map<string, SnapshotMeta>();
+    for (const s of snaps ?? []) map.set(`${s.trade_date}|${s.session}`, s);
+    return map;
+  }, [snaps]);
+
+  const queryResult = snapMap.get(`${queryDate}|${querySession}`);
+
+  function onQuery(e: FormEvent) {
+    e.preventDefault();
+    setQueried(true);
+  }
 
   async function onLogin(e: FormEvent) {
     e.preventDefault();
@@ -122,6 +135,10 @@ export default function DownloadApp() {
 
   return (
     <div className="dl-wrap">
+      <a className="dl-btn dl-btn-ghost dl-backlink" href="/">
+        {t("dl.back")}
+      </a>
+
       <header className="dl-header">
         <div className="dl-header__bar">
           <h1>{t("dl.title")}</h1>
@@ -140,30 +157,65 @@ export default function DownloadApp() {
         </div>
 
         {error && <p className="dl-error">{t("dl.loadFailed", { msg: error })}</p>}
-        {!error && !loading && days.length === 0 && (
-          <p className="dl-muted">{t("dl.noSnapshots")}</p>
+
+        {coverage ? (
+          <p className="dl-hint dl-coverage">
+            {t("dl.coverage", {
+              min: coverage.min,
+              max: coverage.max,
+              days: coverage.days,
+              total: coverage.total,
+            })}
+          </p>
+        ) : (
+          !loading && !error && <p className="dl-hint">{t("dl.coverageUnknown")}</p>
         )}
 
-        {days.length > 0 && (
-          <table className="dl-table">
-            <thead>
-              <tr>
-                <th>{t("dl.th.date")}</th>
-                <th>{t("dl.th.intraday")}</th>
-                <th>{t("dl.th.eod")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {days.map((d) => (
-                <tr key={d.date}>
-                  <td className="dl-date">{d.date}</td>
-                  <td><SessionCell snap={d.intraday} date={d.date} session="intraday_1300" /></td>
-                  <td><SessionCell snap={d.eod} date={d.date} session="eod" /></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <form className="dl-query" onSubmit={onQuery}>
+          <label>
+            {t("dl.th.date")}
+            <input
+              type="date"
+              value={queryDate}
+              max={todayStr()}
+              onChange={(e) => {
+                setQueryDate(e.target.value);
+                setQueried(false);
+              }}
+              required
+            />
+          </label>
+          <label>
+            {t("dl.session")}
+            <select
+              value={querySession}
+              onChange={(e) => {
+                setQuerySession(e.target.value as SessionName);
+                setQueried(false);
+              }}
+            >
+              <option value="intraday_1300">{t("dl.th.intraday")}</option>
+              <option value="eod">{t("dl.th.eod")}</option>
+            </select>
+          </label>
+          <button className="dl-btn" type="submit" disabled={loading || !queryDate}>
+            {t("dl.query")}
+          </button>
+        </form>
+
+        {queried && !error && (
+          queryResult ? (
+            <p className="dl-row dl-query-result">
+              <span>{t("dl.queryFound", { count: queryResult.item_count })}</span>
+              <a className="dl-btn dl-btn-sm" href={snapshotXlsxUrl(queryDate, querySession)}>
+                {t("dl.download", { count: queryResult.item_count })}
+              </a>
+            </p>
+          ) : (
+            <p className="dl-muted">{t("dl.queryNotFound")}</p>
+          )
         )}
+
         <p className="dl-hint">{t("dl.snapshotHint")}</p>
       </section>
 

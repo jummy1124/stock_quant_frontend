@@ -117,6 +117,38 @@ body {
 
 .dl-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
+.dl-backlink {
+  display: inline-block;
+  margin-bottom: 12px;
+}
+
+.dl-coverage { font-weight: 500; }
+
+.dl-query {
+  display: flex;
+  gap: 14px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+.dl-query label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--dl-muted);
+}
+.dl-query input,
+.dl-query select {
+  padding: 7px 10px;
+  border: 1px solid var(--dl-border);
+  border-radius: 6px;
+  font-size: 0.92rem;
+  background: var(--dl-card);
+  color: var(--dl-text);
+}
+.dl-query-result { margin: 4px 0 0; }
+
 .dl-login { display: flex; flex-direction: column; gap: 10px; max-width: 320px; }
 .dl-login label { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; color: var(--dl-muted); }
 .dl-login input {
