@@ -41,6 +41,9 @@ export interface SnapshotCoverage {
   maxDate: string | null;
   tradingDays: number;
   totalSnapshots: number;
+  /** Total on-disk size (bytes) of the screening-snapshot tables; null when
+   * the backend can't report it (e.g. non-Postgres). */
+  dbSizeBytes: number | null;
 }
 
 // ---- token (kept independent from the main app's userapi_token) ----
@@ -111,12 +114,14 @@ export async function getCoverage(): Promise<SnapshotCoverage> {
     max_date: string | null;
     trading_days: number;
     total_snapshots: number;
+    db_size_bytes: number | null;
   };
   return {
     minDate: body.min_date,
     maxDate: body.max_date,
     tradingDays: body.trading_days,
     totalSnapshots: body.total_snapshots,
+    dbSizeBytes: body.db_size_bytes,
   };
 }
 

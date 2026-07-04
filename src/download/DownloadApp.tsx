@@ -28,6 +28,20 @@ function todayStr(): string {
   return `${d.getFullYear()}-${mm}-${dd}`;
 }
 
+/** Human-readable size (B/KB/MB/GB); "-" when unknown (e.g. non-Postgres backend). */
+function formatBytes(bytes: number | null): string {
+  if (bytes == null || Number.isNaN(bytes)) return "-";
+  if (bytes < 1024) return `${bytes} B`;
+  const units = ["KB", "MB", "GB", "TB"];
+  let value = bytes / 1024;
+  let i = 0;
+  while (value >= 1024 && i < units.length - 1) {
+    value /= 1024;
+    i += 1;
+  }
+  return `${value.toFixed(value < 10 ? 2 : 1)} ${units[i]}`;
+}
+
 export default function DownloadApp() {
   const { t } = useI18n();
   const [coverage, setCoverage] = useState<SnapshotCoverage | null>(null);
@@ -153,6 +167,7 @@ export default function DownloadApp() {
               max: coverage.maxDate ?? "",
               days: coverage.tradingDays,
               total: coverage.totalSnapshots,
+              size: formatBytes(coverage.dbSizeBytes),
             })}
           </p>
         ) : (
