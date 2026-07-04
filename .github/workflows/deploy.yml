@@ -1,8 +1,6 @@
-name: Daily Deploy to GCP VM
+name: Manual Deploy to GCP VM
 
 on:
-  schedule:
-    - cron: "40 0 * * *" # UTC；08:40 Asia/Taipei（VM 排程 08:30 開機之後）
   workflow_dispatch:
     inputs:
       force:
