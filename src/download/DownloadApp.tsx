@@ -4,40 +4,22 @@
 // React) so it can be extracted into its own project. Two areas:
 //   1. 篩選快照 (公開)：每個交易日的「盤中13:00」與「收盤後」起漲篩選結果，直接下載 .xlsx。
 //   2. 我的紀錄 (需登入)：登入後下載自己記錄的個股 .xlsx。
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   currentUser,
   downloadRecordsXlsx,
-  listSnapshots,
+  getCoverage,
+  listSnapshotsInRange,
   login,
   logout,
-  snapshotXlsxUrl,
+  snapshotsRangeXlsxUrl,
   type DownloadUser,
   type SessionName,
+  type SnapshotCoverage,
   type SnapshotMeta,
 } from "./downloadApi";
 import { useI18n } from "../i18n";
 import { LanguageSwitcher } from "../components/LanguageSwitcher";
-
-interface Coverage {
-  min: string;
-  max: string;
-  days: number;
-  total: number;
-}
-
-function computeCoverage(snaps: SnapshotMeta[]): Coverage | null {
-  if (snaps.length === 0) return null;
-  let min = snaps[0].trade_date;
-  let max = snaps[0].trade_date;
-  const dateSet = new Set<string>();
-  for (const s of snaps) {
-    if (s.trade_date < min) min = s.trade_date;
-    if (s.trade_date > max) max = s.trade_date;
-    dateSet.add(s.trade_date);
-  }
-  return { min, max, days: dateSet.size, total: snaps.length };
-}
 
 function todayStr(): string {
   const d = new Date();
@@ -48,7 +30,7 @@ function todayStr(): string {
 
 export default function DownloadApp() {
   const { t } = useI18n();
-  const [snaps, setSnaps] = useState<SnapshotMeta[] | null>(null);
+  const [coverage, setCoverage] = useState<SnapshotCoverage | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -60,15 +42,20 @@ export default function DownloadApp() {
   const [recBusy, setRecBusy] = useState(false);
   const [recMsg, setRecMsg] = useState<string | null>(null);
 
-  const [queryDate, setQueryDate] = useState(todayStr());
+  const [rangeStart, setRangeStart] = useState(todayStr());
+  const [rangeEnd, setRangeEnd] = useState(todayStr());
   const [querySession, setQuerySession] = useState<SessionName>("eod");
-  const [queried, setQueried] = useState(false);
 
-  async function refreshSnapshots() {
+  // Result of the last live query against the database (not a client cache).
+  const [rangeRows, setRangeRows] = useState<SnapshotMeta[] | null>(null);
+  const [queryBusy, setQueryBusy] = useState(false);
+  const [queryError, setQueryError] = useState<string | null>(null);
+
+  async function refreshCoverage() {
     setLoading(true);
     setError(null);
     try {
-      setSnaps(await listSnapshots());
+      setCoverage(await getCoverage());
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -77,7 +64,7 @@ export default function DownloadApp() {
   }
 
   useEffect(() => {
-    void refreshSnapshots();
+    void refreshCoverage();
     void currentUser().then(setUser).catch(() => setUser(null));
   }, []);
 
@@ -85,19 +72,20 @@ export default function DownloadApp() {
     document.title = t("dl.docTitle");
   }, [t]);
 
-  const coverage = useMemo(() => computeCoverage(snaps ?? []), [snaps]);
-
-  const snapMap = useMemo(() => {
-    const map = new Map<string, SnapshotMeta>();
-    for (const s of snaps ?? []) map.set(`${s.trade_date}|${s.session}`, s);
-    return map;
-  }, [snaps]);
-
-  const queryResult = snapMap.get(`${queryDate}|${querySession}`);
-
-  function onQuery(e: FormEvent) {
+  async function onQuery(e: FormEvent) {
     e.preventDefault();
-    setQueried(true);
+    setQueryBusy(true);
+    setQueryError(null);
+    setRangeRows(null);
+    try {
+      // Always hits the database live, filtered to exactly [rangeStart, rangeEnd]
+      // + querySession — never relies on a pre-fetched/capped client-side list.
+      setRangeRows(await listSnapshotsInRange(rangeStart, rangeEnd, querySession));
+    } catch (err) {
+      setQueryError((err as Error).message);
+    } finally {
+      setQueryBusy(false);
+    }
   }
 
   async function onLogin(e: FormEvent) {
@@ -151,20 +139,20 @@ export default function DownloadApp() {
       <section className="dl-card">
         <div className="dl-card-head">
           <h2>{t("dl.snapshotsTitle")}</h2>
-          <button className="dl-btn dl-btn-ghost" onClick={refreshSnapshots} disabled={loading}>
+          <button className="dl-btn dl-btn-ghost" onClick={refreshCoverage} disabled={loading}>
             {loading ? t("common.loading") : t("dl.refresh")}
           </button>
         </div>
 
         {error && <p className="dl-error">{t("dl.loadFailed", { msg: error })}</p>}
 
-        {coverage ? (
+        {coverage && coverage.totalSnapshots > 0 ? (
           <p className="dl-hint dl-coverage">
             {t("dl.coverage", {
-              min: coverage.min,
-              max: coverage.max,
-              days: coverage.days,
-              total: coverage.total,
+              min: coverage.minDate ?? "",
+              max: coverage.maxDate ?? "",
+              days: coverage.tradingDays,
+              total: coverage.totalSnapshots,
             })}
           </p>
         ) : (
@@ -173,14 +161,28 @@ export default function DownloadApp() {
 
         <form className="dl-query" onSubmit={onQuery}>
           <label>
-            {t("dl.th.date")}
+            {t("dl.rangeStart")}
             <input
               type="date"
-              value={queryDate}
+              value={rangeStart}
+              max={rangeEnd}
+              onChange={(e) => {
+                setRangeStart(e.target.value);
+                setRangeRows(null);
+              }}
+              required
+            />
+          </label>
+          <label>
+            {t("dl.rangeEnd")}
+            <input
+              type="date"
+              value={rangeEnd}
+              min={rangeStart}
               max={todayStr()}
               onChange={(e) => {
-                setQueryDate(e.target.value);
-                setQueried(false);
+                setRangeEnd(e.target.value);
+                setRangeRows(null);
               }}
               required
             />
@@ -191,28 +193,42 @@ export default function DownloadApp() {
               value={querySession}
               onChange={(e) => {
                 setQuerySession(e.target.value as SessionName);
-                setQueried(false);
+                setRangeRows(null);
               }}
             >
               <option value="intraday_1300">{t("dl.th.intraday")}</option>
               <option value="eod">{t("dl.th.eod")}</option>
             </select>
           </label>
-          <button className="dl-btn" type="submit" disabled={loading || !queryDate}>
-            {t("dl.query")}
+          <button
+            className="dl-btn"
+            type="submit"
+            disabled={queryBusy || !rangeStart || !rangeEnd || rangeStart > rangeEnd}
+          >
+            {queryBusy ? t("common.loading") : t("dl.query")}
           </button>
         </form>
 
-        {queried && !error && (
-          queryResult ? (
+        {queryError && <p className="dl-error">{t("dl.loadFailed", { msg: queryError })}</p>}
+
+        {!queryError && rangeRows && (
+          rangeRows.length > 0 ? (
             <p className="dl-row dl-query-result">
-              <span>{t("dl.queryFound", { count: queryResult.item_count })}</span>
-              <a className="dl-btn dl-btn-sm" href={snapshotXlsxUrl(queryDate, querySession)}>
-                {t("dl.download", { count: queryResult.item_count })}
+              <span>
+                {t("dl.rangeFound", {
+                  days: rangeRows.length,
+                  count: rangeRows.reduce((sum, s) => sum + s.item_count, 0),
+                })}
+              </span>
+              <a
+                className="dl-btn dl-btn-sm"
+                href={snapshotsRangeXlsxUrl(rangeStart, rangeEnd, querySession)}
+              >
+                {t("dl.downloadRange")}
               </a>
             </p>
           ) : (
-            <p className="dl-muted">{t("dl.queryNotFound")}</p>
+            <p className="dl-muted">{t("dl.rangeNotFound")}</p>
           )
         )}
 

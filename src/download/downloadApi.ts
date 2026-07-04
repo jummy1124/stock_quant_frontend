@@ -36,6 +36,13 @@ export interface DownloadUser {
   displayName: string | null;
 }
 
+export interface SnapshotCoverage {
+  minDate: string | null;
+  maxDate: string | null;
+  tradingDays: number;
+  totalSnapshots: number;
+}
+
 // ---- token (kept independent from the main app's userapi_token) ----
 
 export function getToken(): string | null {
@@ -67,10 +74,69 @@ export async function listSnapshots(limit = 2000): Promise<SnapshotMeta[]> {
   return body.snapshots ?? [];
 }
 
+/**
+ * Every snapshot header in [start, end] (oldest first), queried live from the
+ * database — pass `session` to restrict to one session, or omit it for both.
+ * Used by the date-range picker so results always reflect what's actually
+ * persisted, not a client-side cache.
+ */
+export async function listSnapshotsInRange(
+  start: string,
+  end: string,
+  session?: SessionName
+): Promise<SnapshotMeta[]> {
+  const params: Record<string, string> = { start, end };
+  if (session) params.session = session;
+  const qs = new URLSearchParams(params);
+  const res = await fetch(`${API_BASE}/downloadapi/snapshots?${qs.toString()}`, {
+    headers: { Accept: "application/json" },
+  });
+  if (!res.ok) throw new Error(`查詢失敗 (HTTP ${res.status})`);
+  const body = (await res.json()) as { snapshots: SnapshotMeta[] };
+  return body.snapshots ?? [];
+}
+
+/**
+ * Whole-database coverage stats (earliest/latest trade_date, trading days,
+ * total snapshot rows) — a cheap SQL aggregate on the backend, so it's
+ * accurate no matter how much history has accumulated.
+ */
+export async function getCoverage(): Promise<SnapshotCoverage> {
+  const res = await fetch(`${API_BASE}/downloadapi/coverage`, {
+    headers: { Accept: "application/json" },
+  });
+  if (!res.ok) throw new Error(`載入資料庫涵蓋範圍失敗 (HTTP ${res.status})`);
+  const body = (await res.json()) as {
+    min_date: string | null;
+    max_date: string | null;
+    trading_days: number;
+    total_snapshots: number;
+  };
+  return {
+    minDate: body.min_date,
+    maxDate: body.max_date,
+    tradingDays: body.trading_days,
+    totalSnapshots: body.total_snapshots,
+  };
+}
+
 /** Public snapshot .xlsx URL — safe to use directly as an <a href> (no auth). */
 export function snapshotXlsxUrl(date: string, session: SessionName): string {
   const qs = new URLSearchParams({ date, session });
   return `${API_BASE}/downloadapi/snapshot.xlsx?${qs.toString()}`;
+}
+
+/**
+ * Public date-range snapshot .xlsx URL — packs every trading day in
+ * [start, end] for one session into a single workbook (no auth).
+ */
+export function snapshotsRangeXlsxUrl(
+  start: string,
+  end: string,
+  session: SessionName
+): string {
+  const qs = new URLSearchParams({ start, end, session });
+  return `${API_BASE}/downloadapi/snapshots.xlsx?${qs.toString()}`;
 }
 
 // ---- auth (reuses the existing userdata backend) ----
