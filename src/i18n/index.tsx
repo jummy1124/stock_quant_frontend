@@ -180,10 +180,51 @@ const zhTW: Dict = {
   "auth.haveAccount": "已經有帳號？",
   "auth.displayName": "顯示名稱（選填）",
   "auth.displayNamePlaceholder": "例如：阿明",
-  "auth.passwordPlaceholder": "至少 6 碼",
+  "auth.passwordPlaceholder": "至少 8 碼",
   "auth.anon": "未登入",
   "auth.logout": "登出",
   "auth.expired": "登入已過期，請重新登入",
+  "auth.passwordMismatch": "兩次輸入的密碼不一致",
+  "auth.passwordTooShort": "密碼至少需要 {n} 碼",
+
+  // 忘記密碼
+  "auth.forgotLink": "忘記密碼？",
+  "auth.forgotTitle": "忘記密碼",
+  "auth.forgotLead": "輸入註冊時使用的信箱，我們會寄一封重設密碼的連結給你。",
+  "auth.forgotSubmit": "寄送重設連結",
+  "auth.forgotSending": "寄送中…",
+  "auth.forgotFailed": "寄送失敗，請稍後再試",
+  "auth.forgotSentTitle": "已寄出",
+  "auth.forgotSentBody": "如果 {email} 有註冊帳號，重設密碼的連結已經寄出了。",
+  "auth.forgotSentHint": "連結 30 分鐘內有效，且只能使用一次。沒收到的話請檢查垃圾郵件匣。",
+  "auth.backToLogin": "回到登入",
+  "auth.backToApp": "回到首頁",
+  "auth.continueToApp": "開始使用",
+
+  // 重設密碼
+  "auth.resetTitle": "設定新密碼",
+  "auth.resetLead": "請輸入新的密碼，設定完成後會直接為你登入。",
+  "auth.newPassword": "新密碼",
+  "auth.confirmPassword": "再次輸入新密碼",
+  "auth.resetSubmit": "設定新密碼",
+  "auth.resetSubmitting": "設定中…",
+  "auth.resetFailed": "重設失敗，連結可能已失效",
+  "auth.resetDoneTitle": "密碼已更新",
+  "auth.resetDoneBody": "新密碼已生效，其他裝置上的登入狀態已一併登出。",
+
+  // 信箱驗證
+  "auth.verifyOnSignupHint": "註冊後會寄一封驗證信到你的信箱；未驗證期間功能不受影響。",
+  "auth.verifying": "驗證中…",
+  "auth.verifyOkTitle": "信箱已驗證",
+  "auth.verifyOkBody": "感謝你完成驗證，可以開始使用了。",
+  "auth.verifyFailedTitle": "驗證失敗",
+  "auth.verifyFailedBody": "這個連結無效或已過期。",
+  "auth.verifyFailedHint": "驗證連結 24 小時內有效且只能用一次。請登入後從提醒橫幅重寄一封新的。",
+  "auth.unverifiedBanner": "你的信箱 {email} 尚未驗證。",
+  "auth.verifyResend": "重寄驗證信",
+  "auth.verifyResending": "寄送中…",
+  "auth.verifyResent": "驗證信已重寄，請至信箱收取",
+  "auth.verifyResendFailed": "重寄失敗，請稍後再試",
 
   // 語言切換
   "lang.label": "語言",
@@ -386,10 +427,57 @@ const en: Dict = {
   "auth.haveAccount": "Already have an account?",
   "auth.displayName": "Display name (optional)",
   "auth.displayNamePlaceholder": "e.g. Ming",
-  "auth.passwordPlaceholder": "at least 6 characters",
+  "auth.passwordPlaceholder": "at least 8 characters",
   "auth.anon": "Not signed in",
   "auth.logout": "Sign out",
   "auth.expired": "Session expired, please sign in again",
+  "auth.passwordMismatch": "The two passwords don't match",
+  "auth.passwordTooShort": "Password must be at least {n} characters",
+
+  // forgot password
+  "auth.forgotLink": "Forgot your password?",
+  "auth.forgotTitle": "Forgot password",
+  "auth.forgotLead":
+    "Enter the email you signed up with and we'll send you a reset link.",
+  "auth.forgotSubmit": "Send reset link",
+  "auth.forgotSending": "Sending…",
+  "auth.forgotFailed": "Couldn't send the email. Please try again later.",
+  "auth.forgotSentTitle": "Check your inbox",
+  "auth.forgotSentBody":
+    "If {email} has an account, a password reset link is on its way.",
+  "auth.forgotSentHint":
+    "The link is valid for 30 minutes and can only be used once. Check your spam folder if it doesn't arrive.",
+  "auth.backToLogin": "Back to sign in",
+  "auth.backToApp": "Back to the app",
+  "auth.continueToApp": "Continue",
+
+  // reset password
+  "auth.resetTitle": "Set a new password",
+  "auth.resetLead": "Choose a new password — we'll sign you in once it's set.",
+  "auth.newPassword": "New password",
+  "auth.confirmPassword": "Confirm new password",
+  "auth.resetSubmit": "Set new password",
+  "auth.resetSubmitting": "Saving…",
+  "auth.resetFailed": "Reset failed — the link may have expired",
+  "auth.resetDoneTitle": "Password updated",
+  "auth.resetDoneBody":
+    "Your new password is active, and sessions on other devices have been signed out.",
+
+  // email verification
+  "auth.verifyOnSignupHint":
+    "We'll email you a verification link. Nothing is blocked while you wait.",
+  "auth.verifying": "Verifying…",
+  "auth.verifyOkTitle": "Email verified",
+  "auth.verifyOkBody": "Thanks for confirming — you're all set.",
+  "auth.verifyFailedTitle": "Verification failed",
+  "auth.verifyFailedBody": "This link is invalid or has expired.",
+  "auth.verifyFailedHint":
+    "Verification links last 24 hours and work once. Sign in and use the banner to send a new one.",
+  "auth.unverifiedBanner": "Your email {email} isn't verified yet.",
+  "auth.verifyResend": "Resend email",
+  "auth.verifyResending": "Sending…",
+  "auth.verifyResent": "Verification email sent — check your inbox",
+  "auth.verifyResendFailed": "Couldn't resend. Please try again later.",
 
   // language switch
   "lang.label": "Language",

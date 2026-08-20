@@ -3,6 +3,8 @@
 // - 啟動時若 localStorage 有 token（userClient 已載入），呼叫 /me 還原登入。
 // - 登入成功 setAuthToken(token)；登出 setAuthToken(null)。
 // - 註冊 userClient 的 onUnauthorized：任一請求收到 401 時自動登出並提示。
+// - 另外提供信箱驗證相關動作：resendVerification（重寄驗證信）、
+//   applyAuthResult（重設密碼頁完成後直接登入）、markVerified（驗證完成後同步狀態）。
 import {
   createContext,
   useCallback,
@@ -13,6 +15,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import type { AuthResult } from "../api/authApi";
 import type { AuthStatus, User } from "./types";
 import * as authApi from "../api/authApi";
 import { getAuthToken, onUnauthorized, setAuthToken } from "../api/userClient";
@@ -26,6 +29,15 @@ interface AuthCtx {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, displayName?: string) => Promise<void>;
   logout: () => Promise<void>;
+  /** 重寄驗證信給自己；回傳後端的訊息字串 */
+  resendVerification: () => Promise<string>;
+  /** 把一組 { token, user } 直接套用成登入狀態（重設密碼完成後用） */
+  applyAuthResult: (result: AuthResult) => void;
+  /**
+   * 在不重新請求的情況下把目前使用者標記為已驗證。
+   * 驗證頁與主畫面可能是同一個分頁，驗證成功後直接收掉提醒橫幅。
+   */
+  markVerified: () => void;
 }
 
 const Ctx = createContext<AuthCtx | null>(null);
@@ -102,6 +114,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     toast.info(t("toast.loggedOut"));
   }, [toast, t]);
 
+  const resendVerification = useCallback(() => authApi.resendVerification(), []);
+
+  const applyAuthResult = useCallback(({ token, user: u }: AuthResult) => {
+    setAuthToken(token);
+    setUser(u);
+    setStatus("authenticated");
+  }, []);
+
+  const markVerified = useCallback(() => {
+    setUser((prev) => (prev ? { ...prev, emailVerified: true } : prev));
+  }, []);
+
   const api = useMemo<AuthCtx>(
     () => ({
       status,
@@ -110,8 +134,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       register,
       logout,
+      resendVerification,
+      applyAuthResult,
+      markVerified,
     }),
-    [status, user, login, register, logout],
+    [
+      status,
+      user,
+      login,
+      register,
+      logout,
+      resendVerification,
+      applyAuthResult,
+      markVerified,
+    ],
   );
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;

@@ -6,6 +6,8 @@ export interface User {
   id: string;
   email: string;
   displayName: string | null;
+  /** 信箱是否已驗證。未驗證仍可正常使用，只在 UI 顯示提醒橫幅。 */
+  emailVerified: boolean;
 }
 
 /** 認證狀態機：啟動時先 loading（嘗試還原 token），之後為已登入 / 未登入 */

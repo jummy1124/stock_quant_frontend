@@ -3,7 +3,13 @@ import { useState, type FormEvent } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import { useT } from "../../i18n";
 
-export function LoginForm({ onSwitch }: { onSwitch: () => void }) {
+export function LoginForm({
+  onSwitch,
+  onForgot,
+}: {
+  onSwitch: () => void;
+  onForgot: () => void;
+}) {
   const { login } = useAuth();
   const t = useT();
   const [email, setEmail] = useState("");
@@ -58,6 +64,12 @@ export function LoginForm({ onSwitch }: { onSwitch: () => void }) {
       <button className="auth-submit" type="submit" disabled={pending}>
         {pending ? t("auth.loggingIn") : t("auth.login")}
       </button>
+
+      <p className="auth-switch auth-switch--forgot">
+        <button type="button" className="auth-link" onClick={onForgot}>
+          {t("auth.forgotLink")}
+        </button>
+      </p>
 
       <p className="auth-switch">
         {t("auth.noAccount")}

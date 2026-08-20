@@ -2,6 +2,7 @@
 import { useState, type FormEvent } from "react";
 import { useAuth } from "../../auth/AuthContext";
 import { useT } from "../../i18n";
+import { PASSWORD_MAX_LEN, PASSWORD_MIN_LEN } from "./passwordPolicy";
 
 export function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
   const { register } = useAuth();
@@ -61,12 +62,15 @@ export function RegisterForm({ onSwitch }: { onSwitch: () => void }) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          minLength={6}
+          minLength={PASSWORD_MIN_LEN}
+          maxLength={PASSWORD_MAX_LEN}
           placeholder={t("auth.passwordPlaceholder")}
         />
       </label>
 
       {err && <p className="auth-error" role="alert">{err}</p>}
+
+      <p className="auth-hint">{t("auth.verifyOnSignupHint")}</p>
 
       <button className="auth-submit" type="submit" disabled={pending}>
         {pending ? t("auth.registering") : t("auth.register")}

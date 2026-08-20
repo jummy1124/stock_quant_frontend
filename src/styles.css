@@ -1265,6 +1265,95 @@ body {
   text-decoration: underline;
 }
 
+/* 「忘記密碼？」放在送出鈕正下方，與底部的「還沒有帳號？」拉開距離 */
+.auth-switch--forgot {
+  margin-top: 0;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* 表單內的說明文字（忘記密碼引導、註冊時的驗證信說明…） */
+.auth-hint {
+  margin: -4px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* 流程完成後的成功訊息（已寄出 / 已驗證 / 密碼已更新） */
+.auth-notice {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 從信件連結進來時顯示的整頁容器（驗證信箱 / 重設密碼） */
+.auth-standalone {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+/* ============================================================
+   未驗證信箱提醒橫幅
+   ============================================================ */
+.verify-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  background: rgba(217, 119, 6, 0.12);
+  border-bottom: 1px solid rgba(217, 119, 6, 0.3);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.verify-banner__text {
+  text-align: center;
+}
+.verify-banner__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.verify-banner__action {
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+.verify-banner__action:hover:not(:disabled) {
+  text-decoration: underline;
+}
+.verify-banner__action:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.verify-banner__dismiss {
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.verify-banner__dismiss:hover {
+  color: var(--text);
+}
+
 /* ============================================================
    Toast
    ============================================================ */
