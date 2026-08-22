@@ -33,6 +33,12 @@ so the UI stays fast and the code stays easy to follow.
 - **Click-to-chart** — any row opens a modal with ~6 months of candles + volume + MA5/20/60,
   rendered with [lightweight-charts](https://github.com/tradingview/lightweight-charts),
   fed by `GET /api/history/{symbol}`.
+- **Backtest tab** — asks the database what the screen has actually been worth: for every
+  stock ever flagged, how often it was up N trading days later, plus mean/median/best/worst
+  return, a win-rate-by-N bar chart, a per-stock detail table and an `.xlsx` export. Two
+  entry conventions — 13:00 intraday price vs. close (N = 0 allowed: buy at one o'clock,
+  mark at the bell) and close vs. close. Backed by `GET /backtestapi/run`; the statistics
+  are computed server-side, where the trading calendar and whole-market closes live.
 - **My Records** (after sign-in) — JWT auth against `/userapi`, per-user watchlist with
   target/cost price and live return estimates; optimistic updates with rollback.
 - **Standalone download page** — export daily snapshots / your records as `.xlsx`.
@@ -144,7 +150,8 @@ the only port you must expose publicly is the frontend's.
 src/
   i18n/                 # zh-TW / en dictionaries + provider + useT() hook
   types/screen.ts       # backend contract types (Meta / BreakoutRow / ScreenSettings)
-  api/                  # screen.ts, history.ts, userClient.ts (JWT + 401), authApi.ts
+  types/backtest.ts     # /backtestapi contract types (modes, horizon stats, detail rows)
+  api/                  # screen.ts, history.ts, backtest.ts, userClient.ts (JWT + 401), authApi.ts
   hooks/useScreen.ts    # 30s polling, settings-aware, AbortController cleanup
   utils/format.ts       # number / percent / relative-time formatting + up/down classes
   auth/                 # AuthContext: token restore, auto-logout on 401
@@ -157,6 +164,7 @@ src/
     Controls.tsx        # row count + expandable filter panel + reset
     StockTable.tsx      # sortable results table
     StockDetailModal.tsx / StockChart.tsx   # candlestick + volume + MAs
+    BacktestPage.tsx / WinRateChart.tsx     # Backtest tab + win-rate-by-N bar chart (inline SVG)
     RecordsPage.tsx / StockRecordPanel.tsx  # My Records tab + per-stock editor
     LanguageSwitcher.tsx                     # zh-TW / EN toggle
     auth/               # LoginForm / RegisterForm / AuthPanel / UserMenu

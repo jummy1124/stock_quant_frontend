@@ -12,8 +12,9 @@ import { ResetPasswordPage } from "./components/auth/ResetPasswordPage";
 import { VerifyEmailPage } from "./components/auth/VerifyEmailPage";
 import { ScreenPage } from "./components/ScreenPage";
 import { RecordsPage } from "./components/RecordsPage";
+import { BacktestPage } from "./components/BacktestPage";
 
-type Tab = "screen" | "records";
+type Tab = "screen" | "backtest" | "records";
 
 // ---------------------------------------------------------------------------
 // 信件連結（?verify= / ?reset=）
@@ -93,6 +94,14 @@ function Shell() {
             {t("tab.screen")}
           </button>
           <button
+            className={`tab ${tab === "backtest" ? "tab--active" : ""}`}
+            onClick={() => setTab("backtest")}
+            role="tab"
+            aria-selected={tab === "backtest"}
+          >
+            {t("tab.backtest")}
+          </button>
+          <button
             className={`tab ${tab === "records" ? "tab--active" : ""}`}
             onClick={() => setTab("records")}
             role="tab"
@@ -110,6 +119,8 @@ function Shell() {
 
       {tab === "screen" ? (
         <ScreenPage />
+      ) : tab === "backtest" ? (
+        <BacktestPage />
       ) : (
         <div className="screen-page">
           <header className="app-header">

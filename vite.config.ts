@@ -44,6 +44,12 @@ export default defineConfig({
         target: process.env.USERDATA_URL ?? "http://localhost:8100",
         changeOrigin: true,
       },
+      // 回測 API（起漲個股後續漲跌統計），同樣是 userdata 後端。
+      // 全歷史查詢會掃過整張快照表，逾時給得比其他端點寬鬆一點。
+      "/backtestapi": {
+        target: process.env.USERDATA_URL ?? "http://localhost:8100",
+        changeOrigin: true,
+      },
     },
   },
 });
