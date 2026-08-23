@@ -1493,6 +1493,9 @@ body {
 
 .bt-controls__row {
   display: flex;
+  /* 無條件換行。原本只有 @media (max-width: 720px) 才 wrap，但那看的是視窗寬度
+     而不是這張卡片的寬度 —— 側邊有東西擠壓時，這一列會直接溢出卡片邊界。 */
+  flex-wrap: wrap;
   align-items: flex-end;
   gap: 12px;
 }
@@ -1519,6 +1522,56 @@ body {
   margin: 0;
   font-size: 12px;
   color: #8a929c;
+}
+
+.bt-error {
+  flex: 1 1 100%;
+  margin: 0;
+  font-size: 12px;
+  color: #c2333f;
+}
+
+/* 回測頁自己的輸入框。不沿用 .settings__input —— 那個是為篩選面板的窄數字欄
+   設計的 (width: 88px)，日期選擇器塞不下 YYYY-MM-DD 加上日曆圖示，會被截掉。 */
+.bt-input {
+  font-size: 13px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.bt-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.bt-input--date {
+  /* 日期本體約 92px + 日曆按鈕 + 內距；給足寬度，各家瀏覽器的原生控制項寬度
+     差異不小，用 min-width 讓它可以再撐大而不是被壓縮。 */
+  min-width: 170px;
+}
+
+.bt-input--n {
+  width: 96px;
+}
+
+.bt-input[aria-invalid="true"] {
+  border-color: #c2333f;
+}
+
+/* 「其他天數」輸入列 */
+.bt-addn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bt-addn__label {
+  font-size: 12px;
+  color: #6b7480;
 }
 
 .bt-chips {
@@ -1556,6 +1609,9 @@ body {
 .bt-btn {
   display: inline-flex;
   align-items: center;
+  /* 不換行也不被壓縮：容器變窄時該讓整列折行，而不是把「全部歷史」硬斷成兩行。 */
+  white-space: nowrap;
+  flex-shrink: 0;
   padding: 8px 18px;
   font-size: 14px;
   font-weight: 600;
@@ -1574,6 +1630,11 @@ body {
 .bt-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.bt-btn--sm {
+  padding: 6px 12px;
+  font-size: 13px;
 }
 
 .bt-btn--ghost {
@@ -1797,10 +1858,6 @@ body {
 }
 
 @media (max-width: 720px) {
-  .bt-controls__row {
-    flex-wrap: wrap;
-  }
-
   .bt-headline__value {
     font-size: 34px;
   }

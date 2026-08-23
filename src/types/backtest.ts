@@ -14,8 +14,13 @@ export const BACKTEST_MODES: BacktestMode[] = [
   "close_to_close",
 ];
 
-/** 可選的持有天數。0 只在 intraday_to_close 有意義。 */
-export const HORIZON_CHOICES = [0, 1, 2, 3, 5, 10, 20, 60] as const;
+/** 一鍵可選的持有天數。刻意只留三個常用值，其餘由輸入欄自由指定 ——
+ *  一整排按鈕看起來像「只能選這些」，反而把真正的彈性藏起來了。 */
+export const HORIZON_PRESETS = [1, 5, 10] as const;
+
+/** 與後端 app/backtest.py 的護欄一致，讓不合法的 N 在送出前就被擋下並說明原因。 */
+export const MAX_HORIZON = 120;
+export const MAX_HORIZONS = 16;
 
 export interface HorizonStat {
   n: number;
