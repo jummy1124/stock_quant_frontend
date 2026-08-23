@@ -326,7 +326,9 @@ const zhTW: Dict = {
   "bt.th.return": "報酬率",
   "bt.tableNote": "「無資料」為尚未經過 N 個交易日、或該日收盤價未回補而未列入統計的筆數 —— 這些不會被當成持平或下跌。點圖上的長條可切換下方明細。",
   "bt.detailTitle": "N={n} 個交易日後的個股明細",
-  "bt.detailCount": "（顯示 {shown} / 共 {total} 筆）",
+  "bt.detailCount": "（共 {total} 筆）",
+  "bt.detailCountCapped": "（依目前排序取前 {shown} 筆，全部共 {total} 筆）",
+  "bt.sortHint": "點擊依此欄排序（重新向後端查詢，排序涵蓋全部資料而非只有本頁）",
   "bt.footer": "⚠️ 回測為歷史統計資訊參考，過去表現不代表未來績效，非投資建議。未考慮手續費、交易稅、滑價與流動性。",
 };
 
@@ -643,7 +645,9 @@ const en: Dict = {
   "bt.th.return": "Return",
   "bt.tableNote": "\"No data\" counts entries excluded because N trading days have not passed yet, or the closing price for that day was never uploaded — they are never treated as flat or losing trades. Click a bar to switch the detail below.",
   "bt.detailTitle": "Per-stock detail at N={n}",
-  "bt.detailCount": " (showing {shown} of {total})",
+  "bt.detailCount": " ({total} rows)",
+  "bt.detailCountCapped": " (top {shown} by the current sort, of {total} total)",
+  "bt.sortHint": "Sort by this column — re-queries the server, so it ranks every row, not just this page",
   "bt.footer": "\u26a0\ufe0f Backtests are historical reference information; past performance does not predict future results. Not investment advice. Fees, transaction tax, slippage and liquidity are not modelled.",
 };
 

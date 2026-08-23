@@ -52,6 +52,18 @@ export interface BacktestDetailRow {
   return_pct: number;
 }
 
+/** 明細表可排序的欄位，與後端 schemas.DETAIL_SORT_KEYS 一致。 */
+export type DetailSortKey =
+  | "trade_date"
+  | "symbol"
+  | "entry_price"
+  | "exit_date"
+  | "exit_price"
+  | "change"
+  | "return_pct";
+
+export type SortOrder = "asc" | "desc";
+
 export interface BacktestResult {
   mode: BacktestMode;
   session: string;
@@ -63,6 +75,9 @@ export interface BacktestResult {
   summary: HorizonStat[];
   detail_n: number;
   detail_total: number;
+  /** 後端回報它實際採用的排序 —— 指示箭頭讀這個，而不是讀我們「以為」送出去的值。 */
+  detail_sort: DetailSortKey;
+  detail_order: SortOrder;
   detail: BacktestDetailRow[];
   warning: string | null;
 }
@@ -84,4 +99,6 @@ export interface BacktestQuery {
   end: string;
   horizons: number[];
   detail_n: number;
+  detail_sort: DetailSortKey;
+  detail_order: SortOrder;
 }

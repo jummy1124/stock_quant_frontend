@@ -1837,6 +1837,23 @@ body {
   color: #1f2733;
 }
 
+/* 排序中的欄位 + 換排序時的載入態 */
+.bt-table th.is-sorted {
+  color: var(--text);
+}
+
+.bt-sort-arrow {
+  font-size: 10px;
+}
+
+.table-wrap.is-busy {
+  /* 重新查詢時把表格壓淡，但仍然看得見 —— 整片消失會讓人以為點壞了。
+     pointer-events 關掉，避免在載入中連點表頭疊出一串請求。 */
+  opacity: 0.55;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
 .bt-row--active {
   background: #f2f6ff;
 }

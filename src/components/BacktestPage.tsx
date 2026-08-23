@@ -19,6 +19,8 @@ import {
   type BacktestMode,
   type BacktestQuery,
   type BacktestResult,
+  type DetailSortKey,
+  type SortOrder,
 } from "../types/backtest";
 import {
   backtestXlsxUrl,
@@ -44,7 +46,30 @@ const DEFAULT_QUERY: BacktestQuery = {
   end: "",
   horizons: DEFAULT_HORIZONS,
   detail_n: 1,
+  detail_sort: "trade_date",
+  detail_order: "desc",
 };
+
+/** 明細表的欄位定義。sort 為 null 的欄位不可排序（名稱、市場只是代號的附屬資訊）。 */
+const DETAIL_COLUMNS: {
+  labelKey: string;
+  sort: DetailSortKey | null;
+  num?: boolean;
+}[] = [
+  { labelKey: "bt.th.screenDate", sort: "trade_date" },
+  { labelKey: "th.symbol", sort: "symbol" },
+  { labelKey: "th.market", sort: null },
+  { labelKey: "bt.th.entry", sort: "entry_price", num: true },
+  { labelKey: "bt.th.exitDate", sort: "exit_date" },
+  { labelKey: "bt.th.exit", sort: "exit_price", num: true },
+  { labelKey: "th.change", sort: "change", num: true },
+  { labelKey: "bt.th.return", sort: "return_pct", num: true },
+];
+
+/** 數值欄第一次點擊給「由大到小」，日期與代號給「由小到大」——各自比較常用的方向。 */
+function firstOrder(key: DetailSortKey): SortOrder {
+  return key === "symbol" ? "asc" : "desc";
+}
 
 function loadQuery(): BacktestQuery {
   try {
@@ -115,14 +140,15 @@ export function BacktestPage() {
     !busy && !!query.start && !!query.end && query.start <= query.end &&
     query.horizons.length > 0;
 
-  const run = useCallback(async () => {
+  const run = useCallback(async (override?: BacktestQuery) => {
+    const q = override ?? query;
     abortRef.current?.abort();
     const ac = new AbortController();
     abortRef.current = ac;
     setBusy(true);
     setError(null);
     try {
-      setResult(await runBacktest(query, ac.signal));
+      setResult(await runBacktest(q, ac.signal));
     } catch (e) {
       if (!ac.signal.aborted) {
         setError((e as Error).message);
@@ -132,6 +158,25 @@ export function BacktestPage() {
       if (!ac.signal.aborted) setBusy(false);
     }
   }, [query]);
+
+  /**
+   * 點表頭換排序 —— 重新跟後端要一次，而不是排前端手上這批。
+   *
+   * 明細最多回 500 筆，而 detail_total 動輒好幾千。只排手上這批的話，「報酬率
+   * 最高」給出的其實是「最新 500 筆裡最高的那筆」，而且看起來和真正的答案一模
+   * 一樣 —— 這種會靜靜騙人的東西不能留。後端是先排序、後截斷，所以拿回來的
+   * 就真的是全部資料的前 500 名。
+   */
+  function sortDetail(key: DetailSortKey) {
+    if (!result) return;
+    const order: SortOrder =
+      result.detail_sort === key
+        ? result.detail_order === "asc" ? "desc" : "asc"
+        : firstOrder(key);
+    const next = { ...query, detail_sort: key, detail_order: order };
+    setQuery(next);
+    void run(next);   // 不清掉 result：換排序時表格留在畫面上，只是重新載入
+  }
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
@@ -365,7 +410,7 @@ export function BacktestPage() {
             <button
               type="button"
               className="bt-btn"
-              onClick={run}
+              onClick={() => void run()}
               disabled={!canRun}
             >
               {busy ? t("common.loading") : t("bt.run")}
@@ -503,24 +548,51 @@ export function BacktestPage() {
                     <h2 className="bt-subhead">
                       {t("bt.detailTitle", { n: result.detail_n })}
                       <small>
-                        {t("bt.detailCount", {
-                          shown: result.detail.length,
-                          total: result.detail_total,
-                        })}
+                        {result.detail_total > result.detail.length
+                          ? t("bt.detailCountCapped", {
+                              shown: result.detail.length,
+                              total: result.detail_total,
+                            })
+                          : t("bt.detailCount", {
+                              shown: result.detail.length,
+                              total: result.detail_total,
+                            })}
                       </small>
                     </h2>
-                    <div className="table-wrap">
+                    <div className={`table-wrap ${busy ? "is-busy" : ""}`}>
                       <table className="stock-table bt-table">
                         <thead>
                           <tr>
-                            <th>{t("bt.th.screenDate")}</th>
-                            <th>{t("th.symbol")}</th>
-                            <th>{t("th.market")}</th>
-                            <th className="num">{t("bt.th.entry")}</th>
-                            <th>{t("bt.th.exitDate")}</th>
-                            <th className="num">{t("bt.th.exit")}</th>
-                            <th className="num">{t("th.change")}</th>
-                            <th className="num">{t("bt.th.return")}</th>
+                            {DETAIL_COLUMNS.map((c) => {
+                              const active = c.sort === result.detail_sort;
+                              const cls = [
+                                c.num ? "num" : "",
+                                c.sort ? "sortable" : "",
+                                active ? "is-sorted" : "",
+                              ].filter(Boolean).join(" ");
+                              return (
+                                <th
+                                  key={c.labelKey}
+                                  className={cls || undefined}
+                                  onClick={c.sort ? () => sortDetail(c.sort!) : undefined}
+                                  aria-sort={
+                                    active
+                                      ? result.detail_order === "asc"
+                                        ? "ascending"
+                                        : "descending"
+                                      : undefined
+                                  }
+                                  title={c.sort ? t("bt.sortHint") : undefined}
+                                >
+                                  {t(c.labelKey)}
+                                  {active && (
+                                    <span className="bt-sort-arrow">
+                                      {result.detail_order === "asc" ? " ▲" : " ▼"}
+                                    </span>
+                                  )}
+                                </th>
+                              );
+                            })}
                           </tr>
                         </thead>
                         <tbody>
