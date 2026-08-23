@@ -36,6 +36,8 @@ function buildQuery(q: BacktestQuery): URLSearchParams {
     end: q.end,
     horizons: q.horizons.join(","),
     detail_n: String(q.detail_n),
+    detail_sort: q.detail_sort,
+    detail_order: q.detail_order,
   });
 }
 
