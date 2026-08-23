@@ -12,7 +12,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   BACKTEST_MODES,
-  HORIZON_CHOICES,
+  HORIZON_PRESETS,
+  MAX_HORIZON,
+  MAX_HORIZONS,
   type BacktestCoverage,
   type BacktestMode,
   type BacktestQuery,
@@ -68,6 +70,8 @@ export function BacktestPage() {
   const [result, setResult] = useState<BacktestResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [customN, setCustomN] = useState("");
+  const [customErr, setCustomErr] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -98,11 +102,14 @@ export function BacktestPage() {
   }, []);
 
   const modeIsIntraday = query.mode === "intraday_to_close";
-  // N=0（當日收盤）只有 13:00 進場才有意義；收盤對收盤時它等於自己比自己。
-  const horizonChoices = useMemo(
-    () => HORIZON_CHOICES.filter((n) => n > 0 || modeIsIntraday),
-    [modeIsIntraday],
-  );
+
+  // 顯示的按鈕 = 三個常用值 ∪ 目前實際選到的值。自訂進來的 N 因此和預設值長得
+  // 一樣、待在同一排，使用者永遠看得到「現在到底在統計哪些天數」，不必回頭去
+  // 讀輸入欄。
+  const horizonChips = useMemo(() => {
+    const set = new Set<number>([...HORIZON_PRESETS, ...query.horizons]);
+    return [...set].sort((a, b) => a - b);
+  }, [query.horizons]);
 
   const canRun =
     !busy && !!query.start && !!query.end && query.start <= query.end &&
@@ -157,6 +164,42 @@ export function BacktestPage() {
         detail_n: horizons.includes(q.detail_n) ? q.detail_n : horizons[0],
       };
     });
+    setResult(null);
+  }
+
+  /** 檢查一個手動輸入的 N，合法回 null，否則回要顯示給使用者的原因。 */
+  function rejectReason(n: number): string | null {
+    if (!Number.isInteger(n)) return t("bt.customN.integer");
+    if (n < 0 || n > MAX_HORIZON) return t("bt.customN.range", { max: MAX_HORIZON });
+    // N=0（當日收盤）只有 13:00 進場才有意義；收盤對收盤時它等於自己比自己。
+    if (n === 0 && !modeIsIntraday) return t("bt.customN.zeroOnlyIntraday");
+    if (!query.horizons.includes(n) && query.horizons.length >= MAX_HORIZONS)
+      return t("bt.customN.tooMany", { max: MAX_HORIZONS });
+    return null;
+  }
+
+  function addCustomHorizon(e?: { preventDefault: () => void }) {
+    e?.preventDefault();
+    const raw = customN.trim();
+    if (!raw) return;
+    const n = Number(raw);
+    if (raw === "" || Number.isNaN(n)) {
+      setCustomErr(t("bt.customN.integer"));
+      return;
+    }
+    const reason = rejectReason(n);
+    if (reason) {
+      setCustomErr(reason);
+      return;
+    }
+    setCustomErr(null);
+    setCustomN("");
+    // 已經選過就不重複加，但仍然清空輸入欄 —— 使用者的意圖已經達成了。
+    if (query.horizons.includes(n)) return;
+    setQuery((q) => ({
+      ...q,
+      horizons: [...q.horizons, n].sort((a, b) => a - b),
+    }));
     setResult(null);
   }
 
@@ -228,7 +271,7 @@ export function BacktestPage() {
               <span className="bt-field__label">{t("bt.field.start")}</span>
               <input
                 type="date"
-                className="settings__input"
+                className="bt-input bt-input--date"
                 value={query.start}
                 max={query.end || undefined}
                 onChange={(e) => {
@@ -242,7 +285,7 @@ export function BacktestPage() {
               <span className="bt-field__label">{t("bt.field.end")}</span>
               <input
                 type="date"
-                className="settings__input"
+                className="bt-input bt-input--date"
                 value={query.end}
                 min={query.start || undefined}
                 max={todayStr()}
@@ -266,7 +309,7 @@ export function BacktestPage() {
           <div className="bt-controls__row bt-controls__row--wrap">
             <span className="bt-field__label">{t("bt.field.horizons")}</span>
             <div className="bt-chips">
-              {horizonChoices.map((n) => (
+              {horizonChips.map((n) => (
                 <button
                   key={n}
                   type="button"
@@ -278,7 +321,44 @@ export function BacktestPage() {
                 </button>
               ))}
             </div>
-            <p className="bt-hint">{t("bt.horizonsHint")}</p>
+            <div className="bt-addn">
+              <label className="bt-addn__label" htmlFor="bt-custom-n">
+                {t("bt.customN.label")}
+              </label>
+              <input
+                id="bt-custom-n"
+                className="bt-input bt-input--n"
+                type="number"
+                inputMode="numeric"
+                min={modeIsIntraday ? 0 : 1}
+                max={MAX_HORIZON}
+                step={1}
+                placeholder={t("bt.customN.placeholder")}
+                value={customN}
+                onChange={(e) => {
+                  setCustomN(e.target.value);
+                  setCustomErr(null);
+                }}
+                onKeyDown={(e) => {
+                  // 這一列不是 form，Enter 要自己接 —— 打完數字直接按 Enter 是
+                  // 最順的動線，逼使用者去點「加入」只是多一個動作。
+                  if (e.key === "Enter") addCustomHorizon(e);
+                }}
+                aria-invalid={customErr != null}
+              />
+              <button
+                type="button"
+                className="bt-btn bt-btn--sm"
+                onClick={() => addCustomHorizon()}
+                disabled={!customN.trim()}
+              >
+                {t("bt.customN.add")}
+              </button>
+            </div>
+            {customErr && <p className="bt-error">{customErr}</p>}
+            <p className="bt-hint">
+              {modeIsIntraday ? t("bt.horizonsHint.intraday") : t("bt.horizonsHint")}
+            </p>
           </div>
 
           <div className="bt-controls__row">
