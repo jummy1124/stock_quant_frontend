@@ -33,22 +33,9 @@ const zhTW: Dict = {
   // 文件標題
   "app.docTitle": "台股盤中起漲篩選",
 
-  // 分頁
+    // 分頁
   "tab.screen": "篩選結果",
   "tab.records": "我的紀錄",
-  "tab.branches": "分點進出",
-  "branch.title": "分點進出",
-  "branch.start": "起始日期",
-  "branch.end": "結束日期",
-  "branch.query": "查詢",
-  "branch.branch": "分點",
-  "branch.stock": "證券名稱/代號",
-  "branch.buy": "買進金額",
-  "branch.sell": "賣出金額",
-  "branch.net": "差額",
-  "branch.cost": "庫存成本",
-  "branch.value": "庫存金額",
-
 
   // Header
   "header.title": "台股盤中起漲篩選",
@@ -357,22 +344,9 @@ const en: Dict = {
   // document title
   "app.docTitle": "TW Stock Intraday Breakout Screener",
 
-  // tabs
+    // tabs
   "tab.screen": "Screening Results",
   "tab.records": "My Records",
-  "tab.branches": "Branch Trades",
-  "branch.title": "Branch Trades",
-  "branch.start": "Start date",
-  "branch.end": "End date",
-  "branch.query": "Query",
-  "branch.branch": "Branch",
-  "branch.stock": "Security / Symbol",
-  "branch.buy": "Buy amount",
-  "branch.sell": "Sell amount",
-  "branch.net": "Net",
-  "branch.cost": "Inventory cost",
-  "branch.value": "Inventory value",
-
 
   // Header
   "header.title": "TW Stock Intraday Breakout Screener",

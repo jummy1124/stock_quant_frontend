@@ -13,9 +13,8 @@ import { VerifyEmailPage } from "./components/auth/VerifyEmailPage";
 import { ScreenPage } from "./components/ScreenPage";
 import { RecordsPage } from "./components/RecordsPage";
 import { BacktestPage } from "./components/BacktestPage";
-import { BranchTradesPage } from "./components/BranchTradesPage";
 
-type Tab = "screen" | "backtest" | "branches" | "records";
+type Tab = "screen" | "backtest" | "records";
 
 // ---------------------------------------------------------------------------
 // 信件連結（?verify= / ?reset=）
@@ -99,11 +98,8 @@ function Shell() {
             onClick={() => setTab("backtest")}
             role="tab"
             aria-selected={tab === "backtest"}
-          >
+                    >
             {t("tab.backtest")}
-          </button>
-          <button className={`tab ${tab === "branches" ? "tab--active" : ""}`} onClick={() => setTab("branches")} role="tab" aria-selected={tab === "branches"}>
-            {t("tab.branches")}
           </button>
           <button
             className={`tab ${tab === "records" ? "tab--active" : ""}`}
@@ -125,8 +121,6 @@ function Shell() {
         <ScreenPage />
       ) : tab === "backtest" ? (
         <BacktestPage />
-      ) : tab === "branches" ? (
-        <BranchTradesPage />
       ) : (
         <div className="screen-page">
           <header className="app-header">
